@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Calendar from './Calendar';
 
 class App extends Component {
     state = {
@@ -12,6 +13,7 @@ class App extends Component {
             this.setState({
                 events
             });
+			console.log(events);
         } catch (e) {
             console.log(e);
         }
@@ -26,10 +28,10 @@ class App extends Component {
 						<span>{item.startDate}</span>
 						<br/>
 						<span>{item.endDate}</span>
-
                     </div>
                 ))}
-            </div>
+				<Calendar data={this.state.events}/>
+			</div>
         );
     }
 }
