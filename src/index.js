@@ -1,13 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from 'mobx-react';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import Events from './events';
+
+const events = new Events();
 
 ReactDOM.render(
-  <React.StrictMode>
+  <Provider events={events}>
     <App />
-  </React.StrictMode>,
+  </Provider>,
   document.getElementById('root')
 );
 
