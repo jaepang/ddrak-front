@@ -1,15 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'mobx-react';
-import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import Events from './events';
+import Events from './stores/events';
+import CalendarData from './stores/calendar.js'
 
 const events = new Events();
+const calData = new CalendarData();
 
 ReactDOM.render(
-  <Provider events={events}>
+  <Provider events={events} calData={calData}>
     <App />
   </Provider>,
   document.getElementById('root')
