@@ -8,6 +8,7 @@ import {
 import {
   	Scheduler,
   	WeekView,
+	ViewSwitcher,
 	Toolbar,
 	DateNavigator,
 	TodayButton,
@@ -19,7 +20,11 @@ import {
 	EditRecurrenceMenu,
 	DragDropProvider
 } from '@devexpress/dx-react-scheduler-material-ui';
-import '../styles/calendar.css';
+
+const vh = (v) => {
+  let h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+  return (v * h) / 100;
+}
 
 @inject('calendar')
 @observer
@@ -32,21 +37,33 @@ class Calendar extends Component {
 	render() {
 		const { calendar } = this.props;
 		return (
-			<container className="calendar">
 				<Scheduler
 					data={calendar.data}
+					height={vh(100)}
 				>
 					<ViewState
 						currentDate={calendar.currentDate}
+						defaultCurrentView="Day"
 						onCurrentDateChange={calendar.currentDateChange}
 					/>
 					<EditingState/>
 					<IntegratedEditing/>
 					<EditRecurrenceMenu/>
 					<ConfirmationDialog/>
-					<WeekView/>
+					<WeekView
+						displayName="Day"
+						startDayHour={6}
+						endDayHour={24}
+					/>
+					<WeekView
+						name="Night"
+						displayName="Night"
+						startDayHour={0}
+						endDayHour={6}
+					/>
 					<Toolbar/>
 					<DateNavigator/>
+					<ViewSwitcher/>
 					<AllDayPanel/>
 					<TodayButton/>
 					<Appointments/>
@@ -57,7 +74,6 @@ class Calendar extends Component {
 					<AppointmentForm/>
 					<DragDropProvider/>
 				</Scheduler>
-			</container>
 		);
 	}
 };
