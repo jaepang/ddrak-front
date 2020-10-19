@@ -4,7 +4,9 @@ import axios from 'axios';
 
 export default class CalendarStore {
 	@observable data = [];
+	@observable calendarApi = null;
 	@observable currentDate = new Date();
+	@observable disableSubmitButton = true;
 	
 	constructor() {
 		makeObservable(this);
@@ -17,7 +19,32 @@ export default class CalendarStore {
     })
 
 	@action
+	getCalendarApi = (ref) => {
+		this.calendarApi = ref;
+	}
+
+	@action
 	currentDateChange = (date) => {
 		this.currentDate = date;
+	}
+
+	@action
+	eventChange = (changeInfo) => {
+		const newEvent = changeInfo.event;
+		const storedEvent = this.data.find((e) => e.id == changeInfo.event.id);
+	    if (storedEvent) {
+			console.log("it worked");
+      		storedEvent.title = newEvent.title;
+		    storedEvent.allDay = newEvent.allDay;
+      		storedEvent.start = newEvent.start || storedEvent.start;
+		    storedEvent.end = newEvent.end || storedEvent.end;
+    	}
+		console.log(this.data);
+		this.disableSubmitButton = false;
+	}
+
+	@action
+	submitData = () => {
+		this.disableSubmitButton = true;
 	}
 }
