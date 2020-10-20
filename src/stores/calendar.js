@@ -44,6 +44,9 @@ export default class CalendarStore {
 		this.disableSubmitButton = false;
 	}
 
+	/* TODO
+	 * this is only for edit, should add, delete
+	 * */
 	@action
 	submitData = () => {
 		this.disableSubmitButton = true;
