@@ -4,6 +4,7 @@ import axios from 'axios';
 
 export default class CalendarStore {
 	@observable data = [];
+	@observable updatedData = [];
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
 	@observable disableSubmitButton = true;
@@ -39,12 +40,14 @@ export default class CalendarStore {
       		storedEvent.start = newEvent.start || storedEvent.start;
 		    storedEvent.end = newEvent.end || storedEvent.end;
     	}
-		console.log(this.data);
+		this.updatedData.push(storedEvent);
 		this.disableSubmitButton = false;
 	}
 
 	@action
 	submitData = () => {
 		this.disableSubmitButton = true;
+		this.updatedData.map((data) => axios.put(`api/${data.id}/`, data));
+		this.updatedData = [];
 	}
 }

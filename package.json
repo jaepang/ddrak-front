@@ -171,5 +171,6 @@
     "@storybook/addon-links": "^6.0.26",
     "@storybook/react": "^6.0.26",
     "react-is": "^16.13.1"
-  }
+  },
+  "proxy": "http://34.71.74.93:8080"
 }
