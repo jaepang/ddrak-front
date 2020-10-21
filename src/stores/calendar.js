@@ -34,13 +34,20 @@ export default class CalendarStore {
 		const newEvent = changeInfo.event;
 		const storedEvent = this.data.find((e) => e.id == changeInfo.event.id);
 	    if (storedEvent) {
-			console.log("it worked");
       		storedEvent.title = newEvent.title;
 		    storedEvent.allDay = newEvent.allDay;
       		storedEvent.start = newEvent.start || storedEvent.start;
 		    storedEvent.end = newEvent.end || storedEvent.end;
+			if(storedEvent.startTime && storedEvent.endTime) {
+				let dateObjStart = newEvent.start;
+				let dateObjEnd = newEvent.end;
+				let startTime = dateObjStart.getHours() + ':' + dateObjStart.getMinutes();
+				let endTime = dateObjEnd.getHours() + ':' + dateObjEnd.getMinutes();
+				storedEvent.startTime = startTime || storedEvent.startTime;
+				storedEvent.endTime = endTime || storedEvent.endTime;
+			}
+			this.updatedData.push(storedEvent);
     	}
-		this.updatedData.push(storedEvent);
 		this.disableSubmitButton = false;
 	}
 
