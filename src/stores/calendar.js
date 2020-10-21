@@ -1,6 +1,8 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
 
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 export default class CalendarStore {
 	@observable data = [];
@@ -14,7 +16,7 @@ export default class CalendarStore {
 	}
 
 	getData = flow(function*() {
-		const URL = 'http://34.71.74.93:8080/api';
+		const URL = '/api';
     	const res = yield axios.get(URL);
     	this.data = res.data;
     })
@@ -30,23 +32,28 @@ export default class CalendarStore {
 	}
 
 	@action
+	updateData = (tar, e) => {
+		const { title, allDay, start, end } = e;
+		tar.title = title;
+		tar.allDay = allDay;
+		tar.start = start || tar.start;
+		tar.end = end || tar.end;
+		if(tar.groupId) {
+			const startTime = start.getHours() + ':' + start.getMinutes();
+			const endTime = end.getHours() + ':' + end.getMinutes();
+			tar.startTime = startTime || tar.startTime;
+			tar.endTime = endTime || tar.endTime;
+		}
+		this.updatedData.push(tar);
+	}
+
+	@action
 	eventChange = (changeInfo) => {
 		const newEvent = changeInfo.event;
 		const storedEvent = this.data.find((e) => e.id == changeInfo.event.id);
+		console.log(this.calendarApi.getEvents());
 	    if (storedEvent) {
-      		storedEvent.title = newEvent.title;
-		    storedEvent.allDay = newEvent.allDay;
-      		storedEvent.start = newEvent.start || storedEvent.start;
-		    storedEvent.end = newEvent.end || storedEvent.end;
-			if(storedEvent.startTime && storedEvent.endTime) {
-				let dateObjStart = newEvent.start;
-				let dateObjEnd = newEvent.end;
-				let startTime = dateObjStart.getHours() + ':' + dateObjStart.getMinutes();
-				let endTime = dateObjEnd.getHours() + ':' + dateObjEnd.getMinutes();
-				storedEvent.startTime = startTime || storedEvent.startTime;
-				storedEvent.endTime = endTime || storedEvent.endTime;
-			}
-			this.updatedData.push(storedEvent);
+			this.updateData(storedEvent, newEvent);
     	}
 		this.disableSubmitButton = false;
 	}
@@ -57,7 +64,7 @@ export default class CalendarStore {
 	@action
 	submitData = () => {
 		this.disableSubmitButton = true;
-		this.updatedData.map((data) => axios.put(`api/${data.id}/`, data));
+		this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
 		this.updatedData = [];
 	}
 }
