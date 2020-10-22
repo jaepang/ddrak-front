@@ -1,18 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'mobx-react';
-import App from './App';
+import Root from './Root';
 import * as serviceWorker from './serviceWorker';
-import CalendarStore from './stores/calendar.js'
 
-const calendar = new CalendarStore();
-
-ReactDOM.render(
-  <Provider calendar={calendar}>
-    <App />
-  </Provider>,
-  document.getElementById('root')
-);
+ReactDOM.render(<Root />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
