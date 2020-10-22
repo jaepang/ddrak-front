@@ -15,10 +15,13 @@ export default class CalendarStore {
 		makeObservable(this);
 	}
 
-	getData = flow(function*() {
+	getData = flow(function*(flag) {
 		const URL = '/api';
     	const res = yield axios.get(URL);
     	this.data = res.data;
+		if(flag) {
+			alert('data updated!');
+		}
     })
 
 	@action
@@ -66,5 +69,6 @@ export default class CalendarStore {
 		this.disableSubmitButton = true;
 		this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
 		this.updatedData = [];
+		setTimeout(() => this.getData(true), 1000);
 	}
 }
