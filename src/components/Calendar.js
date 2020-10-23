@@ -22,8 +22,6 @@ class Calendar extends Component {
 		this.calendar.getCalendarApi(this.calendarRef.current.getApi());
 	}
 
-	handleEventClick = (info) => alert(info.event.startTime)
-
 	handleEventChange = (changeInfo) => {
 		this.calendar.eventChange(changeInfo);
 	}
@@ -42,7 +40,6 @@ class Calendar extends Component {
 				slotMaxTime="30:00:00"
 				editable={true}
 				droppable={true}
-				eventClick={ this.handleEventClick }
 				eventChange = { this.handleEventChange }
 			/>
 			<button onClick={ calendar.submitData } disabled={calendar.disableSubmitButton}>
