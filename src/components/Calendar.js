@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
+/** @jsx jsx */
+import { jsx, css } from '@emotion/core';
 //import DraggableEvent from './DraggableEvent';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -31,7 +33,7 @@ class Calendar extends Component {
 	render() {
 		const { calendar } = this.props;
 		return (
-			<container>
+			<div css={style}>
 			<FullCalendar
 				ref={ this.calendarRef }
 				plugins={[ timeGridPlugin, interactionPlugin ]}
@@ -48,9 +50,15 @@ class Calendar extends Component {
 			<button onClick={ calendar.submitData } disabled={calendar.disableSubmitButton}>
 			submit data
 			</button>
-			</container>
+			</div>
 		);
 	}
 };
+
+const style = css `
+	width: 70%;
+	position: fixed;
+	right: 0;
+`
 
 export default Calendar

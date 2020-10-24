@@ -10,14 +10,18 @@ export default class CalendarStore {
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
 	@observable disableSubmitButton = true;
+
+	@observable loggedIn = false;
+	@observable username = '';
+	@observable auth = {
+		username: '',
+		password: ''
+	};
 	
-	constructor() {
-		makeObservable(this);
-	}
+	constructor() { makeObservable(this); }
 
 	getData = flow(function*(flag) {
-		const URL = '/api';
-    	const res = yield axios.get(URL);
+    	const res = yield axios.get('/api');
     	this.data = res.data;
 		if(flag) {
 			alert('data updated!');
@@ -70,5 +74,30 @@ export default class CalendarStore {
 		this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
 		this.updatedData = [];
 		setTimeout(() => this.getData(true), 1000);
+	}
+	
+	@action
+	handleFormChange = e => {
+    	const name = e.target.name;
+	    const value = e.target.value;
+		this.auth[name] = value;
+	}	
+	
+	@action
+	handleLogin = (e) => {
+		e.preventDefault();
+		axios.post('/token-auth/', this.auth)
+		.then(res => localStorage.setItem('token', res.data.token));
+		this.loggedIn = true;
+		this.username = this.auth.username;
+		this.auth.username = '';
+		this.auth.password = '';
+	}
+
+	@action
+	handleLogout = () => {
+		localStorage.removeItem('token');
+		this.loggedIn = false;
+		this.username = '';
 	}
 }
