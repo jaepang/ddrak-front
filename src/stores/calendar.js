@@ -36,6 +36,7 @@ export default class CalendarStore {
 	@action
 	currentDateChange = (date) => {
 		this.currentDate = date;
+		this.calendarApi.gotoDate(date);
 	}
 
 	@action
