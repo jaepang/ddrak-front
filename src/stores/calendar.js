@@ -18,6 +18,8 @@ export default class CalendarStore {
 		username: '',
 		password: ''
 	};
+
+	@observable openModal = false;
 	
 	constructor() { makeObservable(this); }
 
@@ -30,9 +32,7 @@ export default class CalendarStore {
     })
 
 	@action
-	getCalendarApi = (ref) => {
-		this.calendarApi = ref;
-	}
+	getCalendarApi = (ref) => this.calendarApi = ref;
 
 	@action
 	currentDateChange = (date) => {
@@ -94,6 +94,7 @@ export default class CalendarStore {
 		this.isAdmin = this.username !== this.auth.username;
 		this.auth.username = '';
 		this.auth.password = '';
+		this.openModal = false;
 	}
 
 	@action
@@ -103,4 +104,10 @@ export default class CalendarStore {
 		this.username = '';
 		this.isAdmin = false;
 	}
+
+	@action
+	handleOpenModal = () => this.openModal = true;
+	@action
+	handleCloseModal = () => this.openModal = false;
+
 }
