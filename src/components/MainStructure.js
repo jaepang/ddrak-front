@@ -3,14 +3,13 @@ import { Component } from 'react';
 import { jsx, css } from '@emotion/core';
 import Calendar from './Calendar';
 import Sidebar from './Sidebar';
-import LoginForm from './LoginForm';
 
 class MainStructure extends Component {
     render() {
         return (
             <div css={style}>
-				<Sidebar children={<LoginForm/>}/>
-				<Calendar/>
+				<Sidebar />
+				<Calendar />
 			</div>
         );
     }
