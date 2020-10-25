@@ -27,15 +27,12 @@ const Sidebar = ({ date, onChange, children }) => {
 const style = css `
 	display: block;
 	height: 100vh;
-	width: 30%;
-	padding: 1rem;
-	position: fixed;
-	top: 0;
-	left: 0;
+	padding: 1.5rem;
 `
 const cardStyle = css `
 	width: 80%;
-	padding: 1rem;
+	padding: 1.5rem;
+	margin: 0 auto;
 	border-radius: 15px;
 `
 

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 /** @jsx jsx */
-import { jsx, css } from '@emotion/core';
+import { Global, jsx, css } from '@emotion/core';
 //import DraggableEvent from './DraggableEvent';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -34,31 +34,36 @@ class Calendar extends Component {
 		const { calendar } = this.props;
 		return (
 			<div css={style}>
-			<FullCalendar
-				ref={ this.calendarRef }
-				plugins={[ timeGridPlugin, interactionPlugin ]}
-	    	    initialView="timeGridWeek"
-				height={ vh(80) }
-				events={ calendar.data }
-				slotMinTime="06:00:00"
-				slotMaxTime="30:00:00"
-				editable={true}
-				droppable={true}
-				eventClick={ this.handleEventClick }
-				eventChange = { this.handleEventChange }
-			/>
-			<button onClick={ calendar.submitData } disabled={calendar.disableSubmitButton}>
-			submit data
-			</button>
+				<Global styles={globalStyle}/>
+				<FullCalendar
+					ref={ this.calendarRef }
+					plugins={[ timeGridPlugin, interactionPlugin ]}
+	    		    initialView="timeGridWeek"
+					height={ vh(90) }
+					events={ calendar.data }
+					slotMinTime="06:00:00"
+					slotMaxTime="30:00:00"
+					editable={true}
+					droppable={true}
+					eventClick={ this.handleEventClick }
+					eventChange = { this.handleEventChange }
+				/>
+				<button onClick={ calendar.submitData } disabled={calendar.disableSubmitButton}>
+					submit data
+				</button>
 			</div>
 		);
 	}
 };
 
+const globalStyle = css `
+	::-webkit-scrollbar {
+	    width: 0px;
+    	background: transparent;
+	}
+`;
 const style = css `
-	width: 70%;
-	position: fixed;
-	right: 0;
-`
+	padding: 1.5rem;
+`;
 
-export default Calendar
+export default Calendar;
