@@ -1,12 +1,12 @@
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
-import React from 'react';
+import { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 import { Input, Button } from 'react-rainbow-components';
 
 @inject('calendar')
 @observer
-class LoginForm extends React.Component {
+class LoginForm extends Component {
 
 	calendar = this.props.calendar;
 

@@ -1,30 +1,35 @@
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
+import { Component } from 'react';
 import { Card, Calendar } from 'react-rainbow-components';
 import { observer, inject } from 'mobx-react';
 
-const Sidebar = ({ date, onChange, children }) => {
-	const curYear = new Date().getFullYear();
-	const minDate = new Date(curYear-5, 0, 1);
-	const maxDate = new Date(curYear+5, 11, 31);
+@inject('calendar')
+@observer
+class Sidebar extends Component {
+	curYear = new Date().getFullYear();
+	minDate = new Date(this.curYear-5, 0, 1);
+	maxDate = new Date(this.curYear+5, 11, 31);
+	calendar = this.props.calendar;
 
-	return (
-		<div css={style}>
-			<h1>화요뜨락</h1>
-			<Card css={cardStyle}>
-				<Calendar 
-					value={date}
-					onChange={onChange}
-					minDate={minDate}
-					maxDate={maxDate}
-				/>
-			</Card>
-			<Card css={cardStyle}>
-				{children}
-			</Card>
-		</div>
-	);
-};
+	render() {
+		return (
+			<div css={style}>
+				<h1>화요뜨락</h1>
+				<Card css={cardStyle}>
+					<Calendar 
+						value={this.calendar.currentDate}
+						onChange={this.calendar.currentDateChange}
+						minDate={this.minDate}
+						maxDate={this.maxDate}
+					/>
+				</Card>
+				<Card css={cardStyle}>
+				</Card>
+			</div>
+		);
+	}
+}
 
 const style = css `
 	display: block;
@@ -32,7 +37,7 @@ const style = css `
 	padding: 1.5rem;
 `
 const cardStyle = css `
-	width: 80%;
+	width: 85%;
 	padding: 1.5rem;
 	margin: 0 auto;
 	margin-bottom: 2rem;
@@ -44,7 +49,4 @@ const cardStyle = css `
 	}
 `
 
-export default inject(({ calendar }) => ({
-	date: calendar.currentDate,
-	onChange: calendar.currentDateChange,
-}))(observer(Sidebar));
+export default Sidebar;
