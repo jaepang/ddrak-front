@@ -3,6 +3,7 @@ import { jsx, css } from '@emotion/core';
 import { Component } from 'react';
 import { Card, Calendar } from 'react-rainbow-components';
 import { observer, inject } from 'mobx-react';
+import UserMenu from './UserMenu';
 
 @inject('calendar')
 @observer
@@ -25,6 +26,7 @@ class Sidebar extends Component {
 					/>
 				</Card>
 				<Card css={cardStyle}>
+					<UserMenu />
 				</Card>
 			</div>
 		);

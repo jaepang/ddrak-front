@@ -13,6 +13,7 @@ export default class CalendarStore {
 
 	@observable loggedIn = false;
 	@observable username = '';
+	@observable isAdmin = false;
 	@observable auth = {
 		username: '',
 		password: ''
@@ -58,8 +59,7 @@ export default class CalendarStore {
 	@action
 	eventChange = (changeInfo) => {
 		const newEvent = changeInfo.event;
-		const storedEvent = this.data.find((e) => e.id == changeInfo.event.id);
-		console.log(this.calendarApi.getEvents());
+		const storedEvent = this.data.find((e) => e.id === Number(changeInfo.event.id));
 	    if (storedEvent) {
 			this.updateData(storedEvent, newEvent);
     	}
@@ -90,7 +90,8 @@ export default class CalendarStore {
 		axios.post('/token-auth/', this.auth)
 		.then(res => localStorage.setItem('token', res.data.token));
 		this.loggedIn = true;
-		this.username = this.auth.username;
+		this.username = this.auth.username.replace('admin',' 관리자');
+		this.isAdmin = this.username !== this.auth.username;
 		this.auth.username = '';
 		this.auth.password = '';
 	}
@@ -100,5 +101,6 @@ export default class CalendarStore {
 		localStorage.removeItem('token');
 		this.loggedIn = false;
 		this.username = '';
+		this.isAdmin = false;
 	}
 }

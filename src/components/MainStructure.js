@@ -20,7 +20,7 @@ const style = css `
 	margin: 0;
 	display: grid;
 	grid-template-columns: 1fr 3fr;
-`
+`;
 
 export default MainStructure;
 
