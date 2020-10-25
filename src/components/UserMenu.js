@@ -5,28 +5,29 @@ import { observer, inject } from 'mobx-react';
 import LoginForm from './LoginForm';
 import { Modal, Button } from 'react-rainbow-components';
 
-@inject('calendar')
+@inject('page')
 @observer
 class UserMenu extends Component {
-	calendar = this.props.calendar;
+	page = this.props.page;
 	
     render() {
         return (
             <div css={style}>
-				{ this.calendar.username !== '' && <h3>{this.calendar.username}</h3> }
-				{ this.calendar.username === '' && <h3>어서오세요!</h3> }
+				{ this.page.username !== '' && <h3>{this.page.username}</h3> }
+				{ this.page.username === '' && <h3>어서오세요!</h3> }
 			<Modal 
 				id="modal" 
-				isOpen={this.calendar.openModal} 
-				onRequestClose={this.calendar.handleCloseModal}
+				isOpen={this.page.openModal} 
+				onRequestClose={this.page.handleCloseModal}
+				css={modalStyle}
 			>
 				<LoginForm />
 			</Modal>
 			<Button
                 id="button"
-                variant=""
+                variant="brand"
                 label="Open Modal"
-        		onClick={this.calendar.handleOpenModal}
+        		onClick={this.page.handleOpenModal}
             />
 			</div>
         );
@@ -34,6 +35,9 @@ class UserMenu extends Component {
 }
 
 const style = css `
+`;
+const modalStyle = css `
+	padding: 1.5rem;
 `;
 
 export default UserMenu;

@@ -4,15 +4,15 @@ import { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 import { Input, Button } from 'react-rainbow-components';
 
-@inject('calendar')
+@inject('page')
 @observer
 class LoginForm extends Component {
 
-	calendar = this.props.calendar;
+	page = this.props.page;
 
 	render() {
     	return (
-      		<form onSubmit={e => this.calendar.handleLogin(e)}>
+      		<form onSubmit={e => this.page.handleLogin(e)}>
 				<h4>로그인</h4>
 		        <Input
 	        		type="text"
@@ -20,8 +20,8 @@ class LoginForm extends Component {
 					label="Username"
 					labelAlignment="left"
 					placeholder="username"
-        		  	value={this.calendar.auth.username}
-		          	onChange={this.calendar.handleFormChange}
+        		  	value={this.page.auth.username}
+		          	onChange={this.page.handleFormChange}
 					css={inputStyle}
         		/>
 				<br/>
@@ -31,8 +31,8 @@ class LoginForm extends Component {
 					label="Password"
 					labelAlignment="left"
 					placeholder="password"
-		          	value={this.calendar.auth.password}
-        		 	onChange={this.calendar.handleFormChange}
+		          	value={this.page.auth.password}
+        		 	onChange={this.page.handleFormChange}
 					css={inputStyle}
 		        />
         		<Button
