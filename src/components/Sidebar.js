@@ -19,7 +19,9 @@ const Sidebar = ({ date, onChange, children }) => {
 					maxDate={maxDate}
 				/>
 			</Card>
-			{children}
+			<Card css={cardStyle}>
+				{children}
+			</Card>
 		</div>
 	);
 };
@@ -33,7 +35,13 @@ const cardStyle = css `
 	width: 80%;
 	padding: 1.5rem;
 	margin: 0 auto;
+	margin-bottom: 2rem;
+	border: none;
 	border-radius: 15px;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+	&:hover {
+		box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+	}
 `
 
 export default inject(({ calendar }) => ({
