@@ -1,5 +1,8 @@
+/** @jsx jsx */
+import { jsx, css } from '@emotion/core';
 import React from 'react';
 import { observer, inject } from 'mobx-react';
+import { Input, Button } from 'react-rainbow-components';
 
 @inject('calendar')
 @observer
@@ -11,26 +14,49 @@ class LoginForm extends React.Component {
     	return (
       		<form onSubmit={e => this.calendar.handleLogin(e)}>
 				<h4>로그인</h4>
-        		<label htmlFor="username">Username</label>
-		        <input
-        		  type="text"
-		          name="username"
-        		  value={this.calendar.auth.username}
-		          onChange={this.calendar.handleFormChange}
+		        <Input
+	        		type="text"
+		          	name="username"
+					label="Username"
+					labelAlignment="left"
+					placeholder="username"
+        		  	value={this.calendar.auth.username}
+		          	onChange={this.calendar.handleFormChange}
+					css={inputStyle}
         		/>
 				<br/>
-		        <label htmlFor="password">Password</label>
-        		<input
-		          type="password"
-        		  name="password"
-		          value={this.calendar.auth.password}
-        		  onChange={this.calendar.handleFormChange}
+        		<Input
+		          	type="password"
+        		  	name="password"
+					label="Password"
+					labelAlignment="left"
+					placeholder="password"
+		          	value={this.calendar.auth.password}
+        		 	onChange={this.calendar.handleFormChange}
+					css={inputStyle}
 		        />
-        		<button type="submit">submit</button>
+        		<Button
+					label="login"
+					type="submit"
+					variant="brand"
+					css={buttonStyle}
+				/>
 	      </form>
     	);
   	}
 }
+
+const inputStyle = css `
+	input {
+		border-radius: 15px;
+	}
+	label {
+		margin-left: -10px;
+	}
+`;
+const buttonStyle = css `
+	border-radius: 15px;
+`;
 
 export default LoginForm;
 
