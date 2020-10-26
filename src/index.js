@@ -3,14 +3,12 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'mobx-react';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import CalendarStore from './stores/calendar'
-import PageStore from './stores/page'
+import RootStore from './stores'
 
-const calendar = new CalendarStore();
-const page = new PageStore();
+const root = new RootStore();
 
 ReactDOM.render(
-  <Provider calendar={calendar} page={page}>
+  <Provider {...root}>
     <App />
   </Provider>,
   document.getElementById('root')

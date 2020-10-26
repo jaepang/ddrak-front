@@ -11,7 +11,10 @@ export default class CalendarStore {
 	@observable currentDate = new Date();
 	@observable disableSubmitButton = true;
 
-	constructor() { makeObservable(this); }
+	constructor(root) { 
+		makeObservable(this);
+		this.root = root; 
+	}
 
 	getData = flow(function*(flag) {
     	const res = yield axios.get('/api');

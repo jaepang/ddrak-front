@@ -15,8 +15,11 @@ export default class PageStore {
 
 	@observable openModal = false;
 	
-	constructor() { makeObservable(this); }
-    
+	constructor(root) { 
+		makeObservable(this);
+		this.root = root; 
+	}   
+
 	@action
 	handleFormChange = e => {
     	const name = e.target.name;
