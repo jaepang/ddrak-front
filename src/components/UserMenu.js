@@ -10,11 +10,17 @@ import { Modal, Button } from 'react-rainbow-components';
 class UserMenu extends Component {
 	page = this.props.page;
 	
+	componentDidMount() {
+		if(this.page.loggedIn) {
+			this.page.getCurUser();
+		}
+	}
+
     render() {
         return (
             <div css={style}>
-				{ this.page.username !== '' && <h3>{this.page.username}</h3> }
-				{ this.page.username === '' && <h3>어서오세요!</h3> }
+				{ this.page.loggedIn && <h3>{this.page.username}</h3> }
+				{ !this.page.loggedIn && <h3>어서오세요!</h3> }
 			<Modal 
 				id="modal" 
 				isOpen={this.page.openModal} 

@@ -1,11 +1,11 @@
-import { makeObservable, observable, action } from 'mobx';
+import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 export default class PageStore {
-	@observable loggedIn = false;
+	@observable loggedIn = localStorage.getItem('token') ? true : false;
 	@observable username = '';
 	@observable isAdmin = false;
 	@observable auth = {
@@ -47,6 +47,24 @@ export default class PageStore {
 		this.username = '';
 		this.isAdmin = false;
 	}
+
+	getCurUser = flow(function*() {
+		try {
+			const res = yield axios.get('/api/current-user/', {
+				headers: {
+        	  		Authorization: `JWT ${localStorage.getItem('token')}`
+        		}
+			});
+			const tmp = res.data.username;
+			this.username = tmp.replace('admin', '관리자');
+			this.isAdmin = this.username !== tmp;
+		} catch(error) {
+			if(error.response.status === 401) {
+				localStorage.removeItem('token');
+				this.loggedIn = false;
+			}
+		}
+	})
 
 	@action
 	handleOpenModal = () => this.openModal = true;
