@@ -17,7 +17,10 @@ export default class CalendarStore {
 	}
 
 	getData = flow(function*(flag) {
-    	const res = yield axios.get('/api');
+		const cur = this.currentDate
+		const from = new Date(cur.getFullYear(), cur.getMonth(), 1).toISOString();
+		const to = new Date(cur.getFullYear(), cur.getMonth()+1, 1).toISOString();
+    	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
     	this.data = res.data;
 		if(flag) {
 			alert('data updated!');
@@ -29,8 +32,12 @@ export default class CalendarStore {
 
 	@action
 	currentDateChange = (date) => {
+		const m = this.currentDate.getMonth();
 		this.currentDate = date;
 		this.calendarApi.gotoDate(date);
+		if(m !== date.getMonth()) {
+			this.getData();
+		}
 	}
 
 	@action
