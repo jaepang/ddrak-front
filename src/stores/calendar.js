@@ -33,9 +33,10 @@ export default class CalendarStore {
 	@action
 	currentDateChange = (date) => {
 		const m = this.currentDate.getMonth();
+		const y = this.currentDate.getFullYear();
 		this.currentDate = date;
 		this.calendarApi.gotoDate(date);
-		if(m !== date.getMonth()) {
+		if(m !== date.getMonth() || y !== date.getFullYear()) {
 			this.getData();
 		}
 	}
