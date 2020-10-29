@@ -32,10 +32,13 @@ class Header extends Component {
 	}
 }
 
-const style = css`
-	padding: 0 1.5rem;
+const style = css `
+	padding: 1.5rem;
+	padding-bottom: 0;
+	display: flex;
+    justify-content: space-between;
 	h1 {
-		margin-bottom: 0;
+		margin: 0;
 	}
 `;
 
