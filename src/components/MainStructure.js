@@ -1,15 +1,21 @@
 import { Component } from 'react';
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
+import { observer } from 'mobx-react';
+import Header from './Header';
 import Calendar from './Calendar';
 import Sidebar from './Sidebar';
 
+@observer
 class MainStructure extends Component {
     render() {
         return (
             <div css={style}>
 				<Sidebar />
-				<Calendar />
+				<div>
+					<Header />
+					<Calendar />
+				</div>
 			</div>
         );
     }

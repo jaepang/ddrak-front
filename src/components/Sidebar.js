@@ -11,16 +11,17 @@ class Sidebar extends Component {
 	curYear = new Date().getFullYear();
 	minDate = new Date(this.curYear-5, 0, 1);
 	maxDate = new Date(this.curYear+5, 11, 31);
-	calendar = this.props.calendar;
 
 	render() {
+		const { calendar } = this.props;
+		const date = calendar.curDateObj;
 		return (
 			<div css={style}>
 				<h1>화요뜨락</h1>
 				<Card css={cardStyle}>
 					<Calendar 
-						value={this.calendar.currentDate}
-						onChange={this.calendar.currentDateChange}
+						value={new Date(date.year, date.month-1, date.day)}
+						onChange={calendar.currentDateChange}
 						minDate={this.minDate}
 						maxDate={this.maxDate}
 					/>

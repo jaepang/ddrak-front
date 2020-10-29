@@ -39,7 +39,8 @@ class Calendar extends Component {
 					ref={ this.calendarRef }
 					plugins={[ timeGridPlugin, interactionPlugin ]}
 	    		    initialView="timeGridWeek"
-					height={ vh(90) }
+					headerToolbar={false}
+					height={ vh(80) }
 					events={ calendar.data }
 					slotMinTime="06:00:00"
 					slotMaxTime="30:00:00"

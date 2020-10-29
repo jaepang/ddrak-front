@@ -9,6 +9,11 @@ export default class CalendarStore {
 	@observable updatedData = [];
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
+	@observable curDateObj = {
+		year: this.currentDate.getFullYear(),
+		month: this.currentDate.getMonth()+1,
+		day: this.currentDate.getDate()
+	};
 	@observable disableSubmitButton = true;
 
 	constructor(root) { 
@@ -30,12 +35,45 @@ export default class CalendarStore {
 	@action
 	getCalendarApi = (ref) => this.calendarApi = ref;
 
+	@action setCurDate = () => {
+		this.curDateObj.year = this.currentDate.getFullYear();
+		this.curDateObj.month = this.currentDate.getMonth()+1;
+		this.curDateObj.day = this.currentDate.getDate();
+	}
+
 	@action
 	currentDateChange = (date) => {
-		const m = this.currentDate.getMonth();
 		const y = this.currentDate.getFullYear();
+		const m = this.currentDate.getMonth();
 		this.currentDate = date;
 		this.calendarApi.gotoDate(date);
+		this.updateMonthData(y, m, date);
+		this.setCurDate();
+	}
+
+	@action
+	moveRight = () => {
+		const y = this.currentDate.getFullYear();
+		const m = this.currentDate.getMonth();
+		const d = this.currentDate.getDate();
+		this.currentDate.setDate(d+7);
+		this.calendarApi.next();
+		this.updateMonthData(y, m, this.currentDate);
+		this.setCurDate();
+	}
+	@action
+	moveLeft = () => {
+		const y = this.currentDate.getFullYear();
+		const m = this.currentDate.getMonth();
+		const d = this.currentDate.getDate();
+		this.currentDate.setDate(d-7);
+		this.calendarApi.prev();
+		this.updateMonthData(y, m, this.currentDate);
+		this.setCurDate();
+	}
+
+	@action
+	updateMonthData = (y, m, date) => {
 		if(m !== date.getMonth() || y !== date.getFullYear()) {
 			this.getData();
 		}

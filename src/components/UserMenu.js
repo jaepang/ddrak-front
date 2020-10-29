@@ -35,6 +35,12 @@ class UserMenu extends Component {
                 label="Open Modal"
         		onClick={this.page.handleOpenModal}
             />
+			<Button
+                id="button"
+                variant="brand"
+                label="Logout"
+        		onClick={this.page.handleLogout}
+            />
 			</div>
         );
     }
