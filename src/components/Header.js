@@ -41,6 +41,7 @@ class Header extends Component {
 	render() {
 		const { calendar } = this.props;
 		const cur = calendar.curDateObj;
+		this.calcMonth(cur);
 		return(
 			<div css={style}>
 				{ !this.yearChange && <h1>{cur.year}년 {this.month}월</h1> }
