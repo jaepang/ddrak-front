@@ -20,7 +20,7 @@ class Sidebar extends Component {
 				<h1>화요뜨락</h1>
 				<Card css={cardStyle}>
 					<Calendar 
-						value={new Date(date.year, date.month-1, date.day)}
+						value={new Date(date.year, date.month-1, date.date)}
 						onChange={calendar.currentDateChange}
 						minDate={this.minDate}
 						maxDate={this.maxDate}

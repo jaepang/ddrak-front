@@ -12,7 +12,7 @@ export default class CalendarStore {
 	@observable curDateObj = {
 		year: this.currentDate.getFullYear(),
 		month: this.currentDate.getMonth()+1,
-		day: this.currentDate.getDate()
+		date: this.currentDate.getDate(),
 	};
 	@observable disableSubmitButton = true;
 
@@ -35,10 +35,11 @@ export default class CalendarStore {
 	@action
 	getCalendarApi = (ref) => this.calendarApi = ref;
 
-	@action setCurDate = () => {
+	@action
+	setCurDate = () => {
 		this.curDateObj.year = this.currentDate.getFullYear();
 		this.curDateObj.month = this.currentDate.getMonth()+1;
-		this.curDateObj.day = this.currentDate.getDate();
+		this.curDateObj.date = this.currentDate.getDate();
 	}
 
 	@action
