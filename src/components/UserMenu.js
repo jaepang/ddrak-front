@@ -3,7 +3,10 @@ import { Component } from 'react';
 import { jsx, css } from '@emotion/core';
 import { observer, inject } from 'mobx-react';
 import LoginForm from './LoginForm';
+import UserMenuButton from './UserMenuButton';
 import { Modal, Button } from 'react-rainbow-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 
 @inject('page')
 @observer
@@ -29,18 +32,29 @@ class UserMenu extends Component {
 			>
 				<LoginForm />
 			</Modal>
-			<Button
-                id="button"
-                variant="brand"
-                label="Open Modal"
-        		onClick={this.page.handleOpenModal}
-            />
-			<Button
-                id="button"
-                variant="brand"
-                label="Logout"
-        		onClick={this.page.handleLogout}
-            />
+			{ !this.page.loggedIn &&
+				<UserMenuButton
+					icon={<FontAwesomeIcon icon={faDoorOpen} size="3x"/>}
+					label="로그인"
+					onClick={this.page.handleOpenModal}
+				/>
+			}
+			{ this.page.loggedIn &&
+				<UserMenuButton
+					icon={<FontAwesomeIcon icon={faDoorOpen} size="3x"/>}
+					label="로그아웃"
+					onClick={this.page.handleLogout}
+				/>
+			}
+			{ this.page.isAdmin &&
+					<Button
+						label="변경사항 적용"
+						variant="brand"
+						css={submitButtonStyle}
+						disabled={this.page.root.calendar.disableSubmitButton}
+						onClick={this.page.root.calendar.submitData}
+					/>
+			}
 			</div>
         );
     }
@@ -50,6 +64,12 @@ const style = css `
 `;
 const modalStyle = css `
 	padding: 1.5rem;
+`;
+const submitButtonStyle = css `
+	display: block;
+	border-radius: 15px;
+	width: 100%;
+	margin-top: 10px;
 `;
 
 export default UserMenu;

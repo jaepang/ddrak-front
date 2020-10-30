@@ -41,7 +41,8 @@ class Calendar extends Component {
 	    		    initialView="timeGridWeek"
 					firstDay={1}
 					headerToolbar={false}
-					height={ vh(80) }
+					allDaySlot={false}
+					height={ vh(85) }
 					events={ calendar.data }
 					slotMinTime="06:00:00"
 					slotMaxTime="30:00:00"
@@ -50,9 +51,6 @@ class Calendar extends Component {
 					eventClick={ this.handleEventClick }
 					eventChange = { this.handleEventChange }
 				/>
-				<button onClick={ calendar.submitData } disabled={calendar.disableSubmitButton}>
-					submit data
-				</button>
 			</div>
 		);
 	}
