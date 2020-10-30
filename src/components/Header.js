@@ -2,7 +2,7 @@ import { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
-import { ButtonIcon } from 'react-rainbow-components';
+import { ButtonIcon, Button } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
@@ -62,6 +62,13 @@ class Header extends Component {
 						icon={<FontAwesomeIcon icon={faChevronRight} />} 
 						onClick={calendar.moveRight}
 					/>
+					<Button
+						shaded
+						label="오늘"
+						variant="border-filled"
+						onClick={calendar.moveToday}
+						css={buttonStyle}
+					/>
 				</div>
 			</div>
 		)
@@ -76,6 +83,11 @@ const style = css `
 	h1 {
 		margin: 0;
 	}
+`;
+const buttonStyle = css `
+	border: none;
+	border-radius: 15px;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
 `;
 
 export default Header;

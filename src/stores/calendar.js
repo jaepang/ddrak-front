@@ -51,7 +51,10 @@ export default class CalendarStore {
 		this.updateMonthData(y, m, date);
 		this.setCurDate();
 	}
-
+	
+	moveToday = () => {
+		this.currentDateChange(new Date());
+	}
 	@action
 	moveRight = () => {
 		const y = this.currentDate.getFullYear();
