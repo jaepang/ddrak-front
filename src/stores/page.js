@@ -7,6 +7,7 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 export default class PageStore {
 	@observable loggedIn = localStorage.getItem('token') ? true : false;
 	@observable username = '';
+	@observable usertype = 'guest';
 	@observable isAdmin = false;
 	@observable auth = {
 		username: '',
@@ -35,6 +36,7 @@ export default class PageStore {
 		this.loggedIn = true;
 		this.username = this.auth.username.replace('admin',' 관리자');
 		this.isAdmin = this.username !== this.auth.username;
+		this.setUsertype(this.auth.username);
 		this.auth.username = '';
 		this.auth.password = '';
 		this.openModal = false;
@@ -45,6 +47,7 @@ export default class PageStore {
 		localStorage.removeItem('token');
 		this.loggedIn = false;
 		this.username = '';
+		this.usertype = 'guest';
 		this.isAdmin = false;
 	}
 
@@ -58,6 +61,7 @@ export default class PageStore {
 			const tmp = res.data.username;
 			this.username = tmp.replace('admin', '관리자');
 			this.isAdmin = this.username !== tmp;
+			this.setUsertype(tmp);
 		} catch(error) {
 			if(error.response.status === 401) {
 				localStorage.removeItem('token');
@@ -65,6 +69,17 @@ export default class PageStore {
 			}
 		}
 	})
+	@action
+	setUsertype = (username) => {
+		if(this.isAdmin) {
+			if(username === 'admin')
+				this.usertype = 'admin';
+			else
+				this.usertype = 'clubAdmin';
+		}
+		else
+			this.usertype = 'club';
+	}
 
 	@action
 	handleOpenModal = () => this.openModal = true;

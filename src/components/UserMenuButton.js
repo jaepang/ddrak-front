@@ -15,8 +15,9 @@ const style = css `
 	border: none;
 	background-color: #FFFFFF;
 	color: #3C4043;
-	width: 30%;
-	height: 50%;
+	width: 100%;
+	height: 100%;
+	padding: 0;
 	svg {
 		display: block;
 	    margin: 0 auto;
