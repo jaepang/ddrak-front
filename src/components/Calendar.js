@@ -46,8 +46,8 @@ class Calendar extends Component {
 					events={ calendar.data }
 					slotMinTime="06:00:00"
 					slotMaxTime="30:00:00"
-					editable={true}
-					droppable={true}
+					editable={calendar.root.page.isAdmin}
+					droppable={calendar.root.page.isAdmin}
 					eventClick={ this.handleEventClick }
 					eventChange = { this.handleEventChange }
 				/>
