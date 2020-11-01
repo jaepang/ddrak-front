@@ -34,15 +34,24 @@ export default class PageStore {
 	@action
 	handleLogin = (e) => {
 		e.preventDefault();
-		axios.post('/token-auth/', this.auth)
-		.then(res => localStorage.setItem('token', res.data.token));
-		this.loggedIn = true;
-		this.username = this.auth.username.replace('admin',' 관리자');
-		this.isAdmin = this.username !== this.auth.username;
-		this.setUsertype(this.auth.username);
-		this.auth.username = '';
-		this.auth.password = '';
-		this.openModal = false;
+		const req = {
+			username: this.auth.username,
+			password: this.auth.password
+		};
+		axios.post('/token-auth/', req)
+		.then(res => {
+			if(res.status === 200) {
+				localStorage.setItem('token', res.data.token);
+				this.loggedIn = true;
+				this.username = this.auth.username.replace('admin',' 관리자');
+				this.isAdmin = this.username !== this.auth.username;
+				this.setUsertype(this.auth.username);
+				this.auth.username = '';
+				this.auth.password = '';
+				this.openModal = false;
+			}
+		})
+		.catch(e => alert("로그인 실패"));
 	}
 
 	@action
@@ -84,10 +93,14 @@ export default class PageStore {
 			headers: {
         		Authorization: `JWT ${localStorage.getItem('token')}`
         	}
-		});
-		this.auth.old = '';
-		this.auth.new = '';
-		this.openModal = false;
+		})
+		.then(res => {
+			alert("비밀번호 변경 성공!")
+			this.auth.old = '';
+			this.auth.new = '';
+			this.openModal = false;
+		})
+		.catch( e => alert("다시 시도해 주세요."));
 	}
 
 	@action
