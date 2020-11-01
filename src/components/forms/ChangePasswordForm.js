@@ -12,31 +12,31 @@ class ChangePasswordForm extends Component {
 
 	render() {
     	return (
-      		<form onSubmit={e => this.page.handleLogin(e)}>
+      		<form onSubmit={e => this.page.handlePasswordChange(e)}>
 				<h4>비밀번호변경</h4>
 		        <Input
-	        		type="text"
-		          	name="username"
-					label="Username"
+	        		type="password"
+		          	name="old"
+					label="이전 비밀번호"
 					labelAlignment="left"
-					placeholder="username"
-        		  	value={this.page.auth.username}
+					placeholder="password"
+        		  	value={this.page.auth.old}
 		          	onChange={this.page.handleFormChange}
 					css={inputStyle}
         		/>
 				<br/>
         		<Input
 		          	type="password"
-        		  	name="password"
-					label="Password"
+        		  	name="new"
+					label="새 비밀번호"
 					labelAlignment="left"
 					placeholder="password"
-		          	value={this.page.auth.password}
+		          	value={this.page.auth.new}
         		 	onChange={this.page.handleFormChange}
 					css={inputStyle}
 		        />
         		<Button
-					label="login"
+					label="비밀번호 변경"
 					type="submit"
 					variant="brand"
 					css={buttonStyle}

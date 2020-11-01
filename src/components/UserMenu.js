@@ -24,7 +24,7 @@ const adminPage = { handler: 'adminPage', label: '관리자 페이지', icon: fa
 const setCalendar = { handler: 'openSetCalendarModal', label: '시간표 등록', icon: faCalendarPlus };
 const help = { handler: 'openHelpModal', label: '도움말', icon: faQuestion };
 const changePassword = { handler: 'openChangePasswordModal', label: '비밀번호 변경', icon: faKey };
-const login = { handler: 'handleOpenLoginModal', label: '로그인', icon: faDoorOpen };
+const login = { handler: 'openLoginModal', label: '로그인', icon: faDoorOpen };
 const logout = { handler: 'handleLogout', label: '로그아웃', icon: faDoorOpen };
 
 const clubType = {

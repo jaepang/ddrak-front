@@ -1,6 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
-import LoginForm from '../components/forms/LoginForm';
+import { LoginForm, ChangePasswordForm } from '../components/forms';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -12,9 +12,10 @@ export default class PageStore {
 	@observable isAdmin = false;
 	@observable auth = {
 		username: '',
-		password: ''
+		password: '',
+		old: '',
+		new: ''
 	};
-
 	@observable openModal = false;
 	@observable modalContent = LoginForm;
 	
@@ -24,7 +25,7 @@ export default class PageStore {
 	}   
 
 	@action
-	handleFormChange = e => {
+	handleFormChange = (e) => {
     	const name = e.target.name;
 	    const value = e.target.value;
 		this.auth[name] = value;
@@ -73,6 +74,23 @@ export default class PageStore {
 	})
 
 	@action
+	handlePasswordChange = (e) => {
+		e.preventDefault();
+		const req = {
+			old_password: this.auth.old,
+			new_password: this.auth.new
+		};
+		axios.patch('/api/update-password/', req, {
+			headers: {
+        		Authorization: `JWT ${localStorage.getItem('token')}`
+        	}
+		});
+		this.auth.old = '';
+		this.auth.new = '';
+		this.openModal = false;
+	}
+
+	@action
 	setUsertype = (username) => {
 		if(this.isAdmin) {
 			if(username === 'admin')
@@ -90,8 +108,13 @@ export default class PageStore {
 	handleCloseModal = () => this.openModal = false;
 
 	@action
-	handleOpenLoginModal = () => {
+	openLoginModal = () => {
 		this.modalContent = LoginForm;
+		this.handleOpenModal();
+	}
+	@action
+	openChangePasswordModal = () => {
+		this.modalContent = ChangePasswordForm;
 		this.handleOpenModal();
 	}
 	adminPage = () => window.open('/admin');
