@@ -54,12 +54,12 @@ class Header extends Component {
 				<div>
 					<ButtonIcon
 						size="large" 
-						icon={<FontAwesomeIcon icon={faChevronLeft} />} 
+						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
 						onClick={calendar.moveLeft}
 					/>
 					<ButtonIcon
 						size="large" 
-						icon={<FontAwesomeIcon icon={faChevronRight} />} 
+						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
 						onClick={calendar.moveRight}
 					/>
 					<Button
@@ -81,13 +81,18 @@ const style = css `
 	display: flex;
     justify-content: space-between;
 	h1 {
+		color: #3C4043;
 		margin: 0;
 	}
 `;
 const buttonStyle = css `
+	color: #3C4043;
 	border: none;
 	border-radius: 15px;
 	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+`;
+const iconStyle = css `
+	color: #3C4043;
 `;
 
 export default Header;
