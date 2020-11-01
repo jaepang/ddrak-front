@@ -23,8 +23,8 @@ export default class CalendarStore {
 
 	getData = flow(function*(flag) {
 		const cur = this.currentDate
-		const from = new Date(cur.getFullYear(), cur.getMonth(), 1).toISOString();
-		const to = new Date(cur.getFullYear(), cur.getMonth()+1, 1).toISOString();
+		const from = new Date(cur.getFullYear(), cur.getMonth()-1, 1).toISOString();
+		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
     	this.data = res.data;
 		if(flag) {
@@ -52,9 +52,7 @@ export default class CalendarStore {
 		this.setCurDate();
 	}
 	
-	moveToday = () => {
-		this.currentDateChange(new Date());
-	}
+	moveToday = () => this.currentDateChange(new Date());
 	@action
 	moveRight = () => {
 		const y = this.currentDate.getFullYear();
