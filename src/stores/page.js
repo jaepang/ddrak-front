@@ -1,5 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
+import LoginForm from '../components/forms/LoginForm';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -15,6 +16,7 @@ export default class PageStore {
 	};
 
 	@observable openModal = false;
+	@observable modalContent = LoginForm;
 	
 	constructor(root) { 
 		makeObservable(this);
@@ -69,6 +71,7 @@ export default class PageStore {
 			}
 		}
 	})
+
 	@action
 	setUsertype = (username) => {
 		if(this.isAdmin) {
@@ -86,4 +89,10 @@ export default class PageStore {
 	@action
 	handleCloseModal = () => this.openModal = false;
 
+	@action
+	handleOpenLoginModal = () => {
+		this.modalContent = LoginForm;
+		this.handleOpenModal();
+	}
+	adminPage = () => window.open('/admin');
 }

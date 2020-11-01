@@ -2,7 +2,6 @@ import { Component } from 'react';
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core';
 import { observer, inject } from 'mobx-react';
-import LoginForm from './LoginForm';
 import UserMenuButton from './UserMenuButton';
 import { Modal, Button } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,15 +17,15 @@ import {
 	faPaperPlane
 } from '@fortawesome/free-regular-svg-icons';
 
-const switchCalendar = { label: '시간표 전환', icon: faCalendarAlt };
-const addEvent = { label: '새 일정 추가', icon: faCalendarPlus };
-const borrowRequest = { label: '대여 요청', icon: faPaperPlane };
-const adminPage = { label: '관리자 페이지', icon: faTools };
-const setCalendar = { label: '시간표 등록', icon: faCalendarPlus };
-const help = { label: '도움말', icon: faQuestion };
-const changePassword = { label: '비밀번호 변경', icon: faKey };
-const login = { label: '로그인', icon: faDoorOpen };
-const logout = { label: '로그아웃', icon: faDoorOpen };
+const switchCalendar = { handler: 'switchCalendar', label: '시간표 전환', icon: faCalendarAlt };
+const addEvent = { handler: 'openAddEventModal', label: '새 일정 추가', icon: faCalendarPlus };
+const borrowRequest = { handler: 'openBorrowRequestModal', label: '대여 요청', icon: faPaperPlane };
+const adminPage = { handler: 'adminPage', label: '관리자 페이지', icon: faTools };
+const setCalendar = { handler: 'openSetCalendarModal', label: '시간표 등록', icon: faCalendarPlus };
+const help = { handler: 'openHelpModal', label: '도움말', icon: faQuestion };
+const changePassword = { handler: 'openChangePasswordModal', label: '비밀번호 변경', icon: faKey };
+const login = { handler: 'handleOpenLoginModal', label: '로그인', icon: faDoorOpen };
+const logout = { handler: 'handleLogout', label: '로그아웃', icon: faDoorOpen };
 
 const clubType = {
 	clubAdmin: [ switchCalendar, addEvent, borrowRequest, help, changePassword, logout ],
@@ -57,7 +56,7 @@ class UserMenu extends Component {
 					onRequestClose={this.page.handleCloseModal}
 					css={modalStyle}
 				>
-					<LoginForm />
+					{<this.page.modalContent/>} 
 				</Modal>
 				<div css={style}>
 					{clubType[this.page.usertype].map( b => (
@@ -65,7 +64,7 @@ class UserMenu extends Component {
 								key={b.label}
 								icon={<FontAwesomeIcon icon={b.icon} size="3x"/>}
 								label={b.label}
-								onClick={this.page.handleOpenModal}
+								onClick={this.page[b.handler]}
 							/>
 						))
 					}
