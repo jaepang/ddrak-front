@@ -19,6 +19,7 @@ export default class PageStore {
 	};
 	@observable openModal = false;
 	@observable modalContent = LoginForm;
+	@observable setCalendarMode = false;
 	
 	constructor(root) { 
 		makeObservable(this);
@@ -133,5 +134,11 @@ export default class PageStore {
 		this.modalContent = ChangePasswordForm;
 		this.handleOpenModal();
 	}
+	@action
+	enableSetCalendarMode = () => {
+		this.setCalendarMode = true;
+		this.root.calendar.enableSetCalendarMode();
+	}
+	
 	adminPage = () => window.open('/admin');
 }

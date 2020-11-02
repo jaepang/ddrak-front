@@ -17,7 +17,7 @@ const changePassword = { handler: 'openChangePasswordModal', label: '비밀번�
 const help = { handler: 'openHelpModal', label: '도움말', icon: faQuestion };
 const login = { handler: 'openLoginModal', label: '로그인', icon: faDoorOpen };
 const logout = { handler: 'handleLogout', label: '로그아웃', icon: faDoorOpen };
-const setCalendar = { handler: 'openSetCalendarModal', label: '시간표 등록', icon: faCalendarPlus };
+const setCalendar = { handler: 'enableSetCalendarMode', label: '시간표 등록', icon: faCalendarPlus };
 const switchCalendar = { handler: 'switchCalendar', label: '시간표 전환', icon: faCalendarAlt };
 
 const clubType = {

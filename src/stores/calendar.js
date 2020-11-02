@@ -1,5 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
+import { getFirstMon } from '../utils/dateCalculator';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -116,5 +117,15 @@ export default class CalendarStore {
 		this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
 		this.updatedData = [];
 		setTimeout(() => this.getData(true), 1000);
+	}
+
+	@action
+	enableSetCalendarMode = () => {
+		this.currentDateChange(getFirstMon(this.currentDate));
+		this.data = [];
+	}
+	disableSetCalendarMode = () => {
+		this.currentDateChange(new Date());
+		this.getData();
 	}
 }
