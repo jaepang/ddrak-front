@@ -139,6 +139,11 @@ export default class PageStore {
 		this.setCalendarMode = true;
 		this.root.calendar.enableSetCalendarMode();
 	}
+	@action
+	disableSetCalendarMode = () => {
+		this.setCalendarMode = false;
+		this.root.calendar.disableSetCalendarMode();
+	}
 	
 	adminPage = () => window.open('/admin');
 }

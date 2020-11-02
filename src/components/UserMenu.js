@@ -42,7 +42,7 @@ class UserMenu extends Component {
 						))
 					}
 				</div>
-				{ this.page.isAdmin &&
+				{ (this.page.isAdmin && !this.page.setCalendarMode) &&
 					<Button
 						label="변경사항 적용"
 						variant="brand"
@@ -50,6 +50,23 @@ class UserMenu extends Component {
 						disabled={this.page.root.calendar.disableSubmitButton}
 						onClick={this.page.root.calendar.submitData}
 					/>
+				}
+				{ (this.page.isAdmin && this.page.setCalendarMode) &&
+					<div css={setTimeMode}>
+						<Button
+							label="적용"
+							variant="brand"
+							css={buttonStyle}
+							disabled={this.page.root.calendar.disableSubmitButton}
+							onClick={this.page.root.calendar.submitData}
+						/>
+						<Button
+							label="취소"
+							variant="destructive"
+							css={buttonStyle}
+							onClick={this.page.disableSetCalendarMode}
+						/>
+					</div>
 				}
 			</div>
         );
@@ -70,6 +87,16 @@ const submitButtonStyle = css `
 	display: block;
 	border-radius: 15px;
 	width: 100%;
+	margin-top: 10px;
+`;
+const setTimeMode = css `
+	display: flex;
+	justify-content: space-between;
+`;
+const buttonStyle = css `
+	display: inline-block;
+	border-radius: 15px;
+	width: 48%;
 	margin-top: 10px;
 `;
 
