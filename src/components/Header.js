@@ -5,50 +5,22 @@ import { jsx, css } from '@emotion/core';
 import { ButtonIcon, Button } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { calcMonth } from '../utils/dateCalculator';
 
 @inject('calendar')
 @observer
 class Header extends Component {
-	bfDate;
-	aftDate;
-	yearChange;
-	month;
-
-	calcMonth = (cur) => {
-		const { year, month, date } = cur;
-		let day = new Date(year, month-1, date).getDay();
-		if(day === 0)
-			day = 7;
-		const prevTest = new Date(year, month-1, date-day+1);
-		const nextTest = new Date(year, month-1, date-day+7);
-		if(prevTest.getMonth() < month-1 || prevTest.getFullYear() < year) {
-			this.bfDate = prevTest;
-			this.aftDate = new Date(cur.year, cur.month-1, cur.date);
-			this.yearChange = this.bfDate.getFullYear() !== this.aftDate.getFullYear();
-			this.month = `${this.bfDate.getMonth()+1}-${cur.month}`;
-		}
-		else if(nextTest.getMonth() > month-1 || year < nextTest.getFullYear()) {
-			this.bfDate = new Date(cur.year, cur.month-1, cur.date);
-			this.aftDate = nextTest;
-			this.yearChange = this.bfDate.getFullYear() !== this.aftDate.getFullYear();
-			this.month = `${cur.month}-${this.aftDate.getMonth()+1}`;
-		}
-		else {
-			this.yearChange = false;
-			this.month = `${cur.month}`;
-		}
-	}
 	render() {
 		const { calendar } = this.props;
 		const cur = calendar.curDateObj;
-		this.calcMonth(cur);
+		const { bfDate, aftDate, yearChange, title } = calcMonth(cur);
 		return(
 			<div css={style}>
-				{ !this.yearChange && <h1>{cur.year}년 {this.month}월</h1> }
-				{ this.yearChange && 
+				{ !yearChange && <h1>{cur.year}년 {title}월</h1> }
+				{ yearChange && 
 					<h1>
-						{this.bfDate.getFullYear()}년 {this.bfDate.getMonth()+1}월-
-						{this.aftDate.getFullYear()}년 {this.aftDate.getMonth()+1}월
+						{bfDate.getFullYear()}년 {bfDate.getMonth()+1}월-
+						{aftDate.getFullYear()}년 {aftDate.getMonth()+1}월
 					</h1> 
 				}
 				<div>
@@ -56,11 +28,13 @@ class Header extends Component {
 						size="large" 
 						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
 						onClick={calendar.moveLeft}
+						disabled={calendar.root.page.setCalendarMode}
 					/>
 					<ButtonIcon
 						size="large" 
 						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
 						onClick={calendar.moveRight}
+						disabled={calendar.root.page.setCalendarMode}
 					/>
 					<Button
 						shaded
@@ -68,6 +42,7 @@ class Header extends Component {
 						variant="border-filled"
 						onClick={calendar.moveToday}
 						css={buttonStyle}
+						disabled={calendar.root.page.setCalendarMode}
 					/>
 				</div>
 			</div>
