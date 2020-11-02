@@ -21,7 +21,7 @@ class UserMenu extends Component {
     render() {
         return (
             <div>
-				{ this.page.loggedIn && <h3>{this.page.username}</h3> }
+				{ this.page.loggedIn && <h3>{this.page.usernameDisplay}</h3> }
 				{ !this.page.loggedIn && <h3>어서오세요!</h3> }
 				<Modal 
 					id="modal" 
