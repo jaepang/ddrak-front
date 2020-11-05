@@ -4,6 +4,7 @@ import { Component } from 'react';
 import { Card, Calendar } from 'react-rainbow-components';
 import { observer, inject } from 'mobx-react';
 import UserMenu from './UserMenu';
+import ExternalEvents from './ExternalEvents';
 
 @inject('calendar')
 @observer
@@ -19,12 +20,17 @@ class Sidebar extends Component {
 			<div css={style}>
 				<h1>화요뜨락</h1>
 				<Card css={cardStyle}>
-					<Calendar 
-						value={new Date(date.year, date.month-1, date.date)}
-						onChange={calendar.currentDateChange}
-						minDate={this.minDate}
-						maxDate={this.maxDate}
-					/>
+					{ !calendar.root.page.setCalendarMode && 
+						<Calendar 
+							value={new Date(date.year, date.month-1, date.date)}
+							onChange={calendar.currentDateChange}
+							minDate={this.minDate}
+							maxDate={this.maxDate}
+						/>
+					}
+					{ calendar.root.page.setCalendarMode &&
+						<ExternalEvents />
+					}
 				</Card>
 				<Card css={cardStyle}>
 					<UserMenu />

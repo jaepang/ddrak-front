@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 /** @jsx jsx */
 import { Global, jsx, css } from '@emotion/core';
-//import DraggableEvent from './DraggableEvent';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 
 const vh = (v) => {
   let h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
@@ -18,13 +17,29 @@ class Calendar extends Component {
 	
 	calendar = this.props.calendar;
 	calendarRef = React.createRef();
-
+	
 	componentDidMount() {
 		this.calendar.getData();
 		this.calendar.getCalendarApi(this.calendarRef.current.getApi());
 	}
-
+	componentDidUpdate() {
+		if(this.calendar.root.page.setCalendarMode) {
+			const container = document.getElementById('externalEvents');
+			const date = this.calendar.currentDate;
+			new Draggable(container, {
+				itemSelector: '.fc-event',
+				eventData: eventEl => {
+					return {
+	    				title: eventEl.innerText,
+					    duration: '02:00',
+						groupId: eventEl.innerText + date.toISOString(),
+					};
+				}
+			});
+		}
+	}
 	handleEventClick = (info) => alert(info.event.startTime)
+	handleEventReceive = info => console.log(info.event)
 
 	handleEventChange = (changeInfo) => {
 		this.calendar.eventChange(changeInfo);
@@ -48,6 +63,7 @@ class Calendar extends Component {
 					slotMaxTime="30:00:00"
 					editable={calendar.root.page.isAdmin}
 					droppable={calendar.root.page.isAdmin}
+					eventReceive={this.handleEventReceive}
 					eventClick={ this.handleEventClick }
 					eventChange = { this.handleEventChange }
 				/>

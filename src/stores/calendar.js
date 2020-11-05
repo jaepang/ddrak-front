@@ -126,6 +126,8 @@ export default class CalendarStore {
 	}
 	disableSetCalendarMode = () => {
 		this.currentDateChange(new Date());
+		this.calendarApi.getEvents().map(e => e.remove());
+		this.disableSubmitButton = true;
 		this.getData();
 	}
 }
