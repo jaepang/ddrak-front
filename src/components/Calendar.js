@@ -25,21 +25,19 @@ class Calendar extends Component {
 	componentDidUpdate() {
 		if(this.calendar.root.page.setCalendarMode) {
 			const container = document.getElementById('externalEvents');
-			const date = this.calendar.currentDate;
 			new Draggable(container, {
 				itemSelector: '.fc-event',
 				eventData: eventEl => {
 					return {
 	    				title: eventEl.innerText,
 					    duration: '02:00',
-						groupId: eventEl.innerText + date.toISOString(),
 					};
 				}
 			});
 		}
 	}
 	handleEventClick = (info) => alert(info.event.startTime)
-	handleEventReceive = info => console.log(info.event)
+	handleEventReceive = info => this.calendar.eventReceive(info.event)
 
 	handleEventChange = (changeInfo) => {
 		this.calendar.eventChange(changeInfo);

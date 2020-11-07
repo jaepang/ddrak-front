@@ -8,6 +8,7 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 export default class CalendarStore {
 	@observable data = [];
 	@observable updatedData = [];
+	@observable dataSubmitType = '';
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
 	@observable curDateObj = {
@@ -31,7 +32,7 @@ export default class CalendarStore {
 		if(flag) {
 			alert('data updated!');
 		}
-    })
+	})
 
 	@action
 	getCalendarApi = (ref) => this.calendarApi = ref;
@@ -101,10 +102,33 @@ export default class CalendarStore {
 	@action
 	eventChange = (changeInfo) => {
 		const newEvent = changeInfo.event;
+		console.log(newEvent);
 		const storedEvent = this.data.find((e) => e.id === Number(changeInfo.event.id));
 	    if (storedEvent) {
+			this.dataSubmitType = 'patch';
 			this.updateData(storedEvent, newEvent);
     	}
+		this.disableSubmitButton = false;
+	}
+
+	@action
+	eventReceive = event => {
+		const date = event.start
+		let jsonData = {
+			title: event.title,
+			start: event.start,
+			end: event.end,
+			club: event.title,
+			creator: 'admin',
+			groupId: event.title + date.toISOString(),
+			daysOfWeek: [date.getDay()],
+			startTime: event.start.getHours() + ':' + event.start.getMinutes(),
+			endTime: event.end.getHours() + ':' + event.end.getMinutes(),
+			startRecur: new Date(date.getFullYear(), date.getMonth(), 1),
+			endRecur: new Date(date.getFullYear(), date.getMonth()+1, 1)
+		}
+		this.updatedData.push(jsonData);
+		this.dataSubmitType = 'post';
 		this.disableSubmitButton = false;
 	}
 
@@ -114,8 +138,14 @@ export default class CalendarStore {
 	@action
 	submitData = () => {
 		this.disableSubmitButton = true;
-		this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
+		if(this.dataSubmitType === 'patch')
+			this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
+		else if(this.dataSubmitType === 'post') {
+			console.log(this.updatedData);
+			this.updatedData.map((data) => axios.post(`api/`, data));
+		}
 		this.updatedData = [];
+		this.dataSubmitType = '';
 		setTimeout(() => this.getData(true), 1000);
 	}
 
