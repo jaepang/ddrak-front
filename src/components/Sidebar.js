@@ -5,6 +5,7 @@ import { Card, Calendar } from 'react-rainbow-components';
 import { observer, inject } from 'mobx-react';
 import UserMenu from './UserMenu';
 import ExternalEvents from './ExternalEvents';
+import SetTimeSlot from './SetTimeSlot';
 
 @inject('calendar')
 @observer
@@ -33,7 +34,12 @@ class Sidebar extends Component {
 					}
 				</Card>
 				<Card css={cardStyle}>
-					<UserMenu />
+					{ !calendar.root.page.setCalendarMode &&
+						<UserMenu />
+					}
+					{ calendar.root.page.setCalendarMode &&
+							<SetTimeSlot />
+					}
 				</Card>
 			</div>
 		);
