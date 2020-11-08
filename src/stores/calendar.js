@@ -133,7 +133,7 @@ export default class CalendarStore {
 	}
 
 	/* TODO
-	 * this is only for edit, should add, delete
+	 * this is only for edit, add, should implement delete
 	 * */
 	@action
 	submitData = () => {
