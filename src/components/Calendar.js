@@ -28,9 +28,15 @@ class Calendar extends Component {
 			new Draggable(container, {
 				itemSelector: '.fc-event',
 				eventData: eventEl => {
+					const color = {
+						'악의꽃': '#79A3F4',
+						'막무간애': '#FF6B76',
+						'모여락': '#CD9CF4'
+					};
 					return {
 	    				title: eventEl.innerText,
 					    duration: '02:00',
+						color: color[eventEl.innerText]
 					};
 				}
 			});

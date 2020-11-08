@@ -113,11 +113,12 @@ export default class CalendarStore {
 
 	@action
 	eventReceive = event => {
-		const date = event.start
+		const date = event.start;
 		let jsonData = {
 			title: event.title,
 			start: event.start,
 			end: event.end,
+			color: event.color,
 			club: event.title,
 			creator: 'admin',
 			groupId: event.title + date.toISOString(),
