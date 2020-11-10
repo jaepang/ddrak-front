@@ -14,7 +14,19 @@ class SetTimeSlot extends Component {
 	render() {
 		return(
 			<div>
-				<h3>시간대별 설정</h3>
+				<div css={container}>
+					<h3>시간대별 설정</h3>
+					<div>
+						<ButtonIcon
+							size="medium" 
+							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
+						/>
+						<ButtonIcon
+							size="medium" 
+							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
+						/>
+					</div>
+				</div>
 				<div css={container}>
 					<TimePicker
 						label="시작 시간"
@@ -66,6 +78,10 @@ class SetTimeSlot extends Component {
 const container = css `
 	display: flex;
 	justify-content: space-between;
+	button {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
 `;
 const timePicker = css `
 	display: inline-block;
@@ -92,8 +108,12 @@ const weekdayPicker = css `
 const buttonStyle = css `
 	display: inline-block;
 	border-radius: 15px;
-	width: 48%;
+	width: 48% !important;
+	height: 40px !important;
 	margin-top: 10px;
+`;
+const iconStyle = css `
+	color: #3C4043;
 `;
 
 export default SetTimeSlot;
