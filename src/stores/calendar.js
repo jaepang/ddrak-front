@@ -17,6 +17,8 @@ export default class CalendarStore {
 		date: this.currentDate.getDate(),
 	};
 	@observable disableSubmitButton = true;
+	@observable setTimeSlot = [];
+	@observable setTimeIdx = 0;
 
 	constructor(root) { 
 		makeObservable(this);
@@ -154,11 +156,51 @@ export default class CalendarStore {
 	enableSetCalendarMode = () => {
 		this.currentDateChange(getFirstMon(this.currentDate));
 		this.data = [];
+		this.setTimeSlot.push({
+			isFirst: true,
+			isLast: true,
+			startTime: null,
+			endTime: null,
+			lfdmDays: [],
+			mmgeDays: [],
+			myrDays: []
+		});
 	}
+	@action
 	disableSetCalendarMode = () => {
 		this.currentDateChange(new Date());
 		this.calendarApi.getEvents().map(e => e.remove());
 		this.disableSubmitButton = true;
+		this.setTimeSlot = [];
+		this.setTimeIdx = 0;
 		this.getData();
 	}
+
+	@action
+	nextTimeSlot = () => {
+		const cur = this.setTimeSlot[this.setTimeIdx]
+		if(cur.isLast) {
+			cur.isLast = false;
+			this.setTimeSlot.push({
+				isFirst: false,
+				isLast: true,
+				startTime: null,
+				endTime: null,
+				lfdmDays: [],
+				mmgeDays: [],
+				myrDays: []
+			});
+		}
+		this.setTimeIdx++;
+	}
+	@action
+	prevTimeSlot = () => this.setTimeIdx--;
+
+	@action
+	changeStartTimeSlot = time => this.setTimeSlot[this.setTimeIdx].startTime = time;
+	@action
+	changeEndTimeSlot = time => this.setTimeSlot[this.setTimeIdx].endTime = time;
+
+	@action
+	changeDays = (id, days) => this.setTimeSlot[this.setTimeIdx][id] = days;
 }

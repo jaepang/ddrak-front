@@ -11,7 +11,14 @@ import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons
 class SetTimeSlot extends Component {
 	calendar = this.props.calendar;
 	page = this.calendar.root.page;
+	defaultDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 	render() {
+		const idx = this.calendar.setTimeIdx;
+		const resources = this.calendar.setTimeSlot;
+		const cur = resources[idx];
+		const lfdmAvailable = this.defaultDays.filter( el => !(cur.mmgeDays.includes(el) || cur.myrDays.includes(el)));
+		const mmgeAvailable = this.defaultDays.filter( el => !(cur.lfdmDays.includes(el) || cur.myrDays.includes(el)));
+		const myrAvailable = this.defaultDays.filter( el => !(cur.lfdmDays.includes(el) || cur.mmgeDays.includes(el)));
 		return(
 			<div>
 				<div css={container}>
@@ -20,10 +27,13 @@ class SetTimeSlot extends Component {
 						<ButtonIcon
 							size="medium" 
 							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
+							disabled={cur.isFirst}
+							onClick={this.calendar.prevTimeSlot}
 						/>
 						<ButtonIcon
 							size="medium" 
 							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
+							onClick={this.calendar.nextTimeSlot}
 						/>
 					</div>
 				</div>
@@ -31,10 +41,14 @@ class SetTimeSlot extends Component {
 					<TimePicker
 						label="시작 시간"
 						css={timePicker}
+						value={cur.startTime}
+						onChange={t => this.calendar.changeStartTimeSlot(t)}
 					/>
 					<TimePicker
 						label="끝 시간"
 						css={timePicker}
+						value={cur.endTime}
+						onChange={t => this.calendar.changeEndTimeSlot(t)}
 					/>
 				</div>
 				<WeekDayPicker
@@ -42,18 +56,27 @@ class SetTimeSlot extends Component {
 					label="악의꽃"
 					labelAlignment="left"
 					css={weekdayPicker}
+					value={cur.lfdmDays}
+					availableDates={lfdmAvailable}
+					onChange={days => this.calendar.changeDays('lfdmDays', days)}
 				/>
 				<WeekDayPicker
 					multiple
 					label="막무간애"
 					labelAlignment="left"
 					css={weekdayPicker}
+					value={cur.mmgeDays}
+					availableDates={mmgeAvailable}
+					onChange={days => this.calendar.changeDays('mmgeDays', days)}
 				/>
 				<WeekDayPicker
 					multiple
 					label="모여락"
 					labelAlignment="left"
 					css={weekdayPicker}
+					value={cur.myrDays}
+					availableDates={myrAvailable}
+					onChange={days => this.calendar.changeDays('myrDays', days)}
 				/>
 				<div css={container}>
 					<Button
@@ -81,6 +104,11 @@ const container = css `
 	button {
 		width: 1.5rem;
 		height: 1.5rem;
+		&:disabled {
+			svg {
+				color: #D7D7D7;
+			}
+		}
 	}
 `;
 const timePicker = css `
