@@ -167,6 +167,7 @@ export default class CalendarStore {
 			myrDays: []
 		});
 	}
+
 	@action
 	disableSetCalendarMode = () => {
 		this.currentDateChange(new Date());
@@ -181,6 +182,12 @@ export default class CalendarStore {
 	displayTimeSlot = (type, info) => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
 		const { startTime, endTime, lfdmDays, mmgeDays, myrDays } = cur;
+		const clubDays = [
+			{club: '악의꽃', color: '#79A3F4', days: lfdmDays},
+			{club: '막무간애', color: '#FF6B76', days: mmgeDays},
+			{club: '모여락', color: '#CD9CF4', days: myrDays}
+		];
+		//let clubEvents = [];
 		if(!startTime || !endTime 
 		|| (lfdmDays.length===0 && mmgeDays.length===0 && myrDays.length===0))
 			return;
@@ -194,61 +201,32 @@ export default class CalendarStore {
 			cur.displayed = true;
 
 		let time = this.currentDate;
-		const eventTemplate = {
-			startTime: startTime,
-			endTime: endTime,
-			startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
-			endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
-		}
-
 		let days = [];
-		if(lfdmDays.length > 0) {
-			lfdmDays.map(d => days.push(dayParser[d]));
-			let time = getFirstDay(days[0], this.currentDate);
-			const lfdmEvent = {
-				...eventTemplate,
-				title: '악의꽃',
-				start: time,
-				end: time,
-				daysOfWeek: days,
-				groupId: startTime,
-				color: '#79A3F4'
-			}
-			this.calendarApi.addEvent(lfdmEvent);
-		}
-		if(mmgeDays.length > 0) {
+		clubDays.map(c => {
 			days = [];
-			mmgeDays.map(d => days.push(dayParser[d]));
-			time = getFirstDay(days[0], this.currentDate);
-			console.log(days);
-			const mmgeEvent = {
-				...eventTemplate,
-				title: '막무간애',
-				start: time,
-				end: time,
-				daysOfWeek: days,
-				groupId: startTime,
-				color: '#FF6B76'
+			if(c.days.length > 0) {
+				c.days.map(d => days.push(dayParser[d]));
+				time = getFirstDay(days[0], this.currentDate);
+				const event = {
+					startTime: startTime,
+					endTime: endTime,
+					startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
+					endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
+					groupId: startTime,
+					creator: 'admin',
+					
+					title: c.club,
+					club: c.club,
+					start: time,
+					end: time,
+					daysOfWeek: days,
+					color: c.color
+				}
+				this.calendarApi.addEvent(event);
 			}
-			this.calendarApi.addEvent(mmgeEvent);
-		}
-		if(myrDays.length > 0) {
-			days = [];
-			myrDays.map(d => days.push(dayParser[d]));
-			time = getFirstDay(days[0], this.currentDate);
-			const myrEvent = {
-				...eventTemplate,
-				title: '모여락',
-				start: time,
-				end: time,
-				daysOfWeek: days,
-				groupId: startTime,
-				color: '#CD9CF4'
-			}
-			days = [];
-			this.calendarApi.addEvent(myrEvent);
-		}
+		});
 	}
+
 	@action
 	nextTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx]
@@ -269,6 +247,7 @@ export default class CalendarStore {
 	}
 	@action
 	prevTimeSlot = () => this.setTimeIdx--;
+
 	@action
 	changeStartTimeSlot = time =>  { 
 		const prev = this.setTimeSlot[this.setTimeIdx].startTime;
