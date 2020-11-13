@@ -32,3 +32,20 @@ export const getFirstMon = (date) => {
 	return mon;
 }
 
+
+export const getFirstDay = (day, date) => {
+	let tar = new Date(date.getFullYear(), date.getMonth(), 1);
+	while(tar.getDay() !== day)
+		tar.setDate(tar.getDate()+1);
+	return tar;
+}
+
+export const dayParser = {
+	sunday: 0,
+	monday: 1,
+	tuesday: 2,
+	wednesday: 3,
+	thursday: 4,
+	friday: 5,
+	saturday: 6
+};

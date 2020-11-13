@@ -1,6 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
-import { getFirstMon } from '../utils/dateCalculator';
+import { getFirstDay, dayParser } from '../utils/dateCalculator';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -154,11 +154,12 @@ export default class CalendarStore {
 
 	@action
 	enableSetCalendarMode = () => {
-		this.currentDateChange(getFirstMon(this.currentDate));
+		this.currentDateChange(getFirstDay(1, this.currentDate));
 		this.data = [];
 		this.setTimeSlot.push({
 			isFirst: true,
 			isLast: true,
+			displayed: false,
 			startTime: null,
 			endTime: null,
 			lfdmDays: [],
@@ -177,6 +178,78 @@ export default class CalendarStore {
 	}
 
 	@action
+	displayTimeSlot = (type, info) => {
+		const cur = this.setTimeSlot[this.setTimeIdx];
+		const { startTime, endTime, lfdmDays, mmgeDays, myrDays } = cur;
+		if(!startTime || !endTime 
+		|| (lfdmDays.length===0 && mmgeDays.length===0 && myrDays.length===0))
+			return;
+		if(cur.displayed) {
+			const tar = this.calendarApi.getEvents().filter(e => 
+				`${('0'+e[type].getHours()).slice(-2)}:00` === info
+			);
+			tar.map(t => t.remove());
+		}
+		else
+			cur.displayed = true;
+
+		let time = this.currentDate;
+		const eventTemplate = {
+			startTime: startTime,
+			endTime: endTime,
+			startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
+			endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
+		}
+
+		let days = [];
+		if(lfdmDays.length > 0) {
+			lfdmDays.map(d => days.push(dayParser[d]));
+			let time = getFirstDay(days[0], this.currentDate);
+			const lfdmEvent = {
+				...eventTemplate,
+				title: '악의꽃',
+				start: time,
+				end: time,
+				daysOfWeek: days,
+				groupId: startTime,
+				color: '#79A3F4'
+			}
+			this.calendarApi.addEvent(lfdmEvent);
+		}
+		if(mmgeDays.length > 0) {
+			days = [];
+			mmgeDays.map(d => days.push(dayParser[d]));
+			time = getFirstDay(days[0], this.currentDate);
+			console.log(days);
+			const mmgeEvent = {
+				...eventTemplate,
+				title: '막무간애',
+				start: time,
+				end: time,
+				daysOfWeek: days,
+				groupId: startTime,
+				color: '#FF6B76'
+			}
+			this.calendarApi.addEvent(mmgeEvent);
+		}
+		if(myrDays.length > 0) {
+			days = [];
+			myrDays.map(d => days.push(dayParser[d]));
+			time = getFirstDay(days[0], this.currentDate);
+			const myrEvent = {
+				...eventTemplate,
+				title: '모여락',
+				start: time,
+				end: time,
+				daysOfWeek: days,
+				groupId: startTime,
+				color: '#CD9CF4'
+			}
+			days = [];
+			this.calendarApi.addEvent(myrEvent);
+		}
+	}
+	@action
 	nextTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx]
 		if(cur.isLast) {
@@ -184,6 +257,7 @@ export default class CalendarStore {
 			this.setTimeSlot.push({
 				isFirst: false,
 				isLast: true,
+				displayed: false,
 				startTime: null,
 				endTime: null,
 				lfdmDays: [],
@@ -195,12 +269,22 @@ export default class CalendarStore {
 	}
 	@action
 	prevTimeSlot = () => this.setTimeIdx--;
-
 	@action
-	changeStartTimeSlot = time => this.setTimeSlot[this.setTimeIdx].startTime = time;
+	changeStartTimeSlot = time =>  { 
+		const prev = this.setTimeSlot[this.setTimeIdx].startTime;
+		this.setTimeSlot[this.setTimeIdx].startTime = time;
+		this.displayTimeSlot('start', prev);
+	}
 	@action
-	changeEndTimeSlot = time => this.setTimeSlot[this.setTimeIdx].endTime = time;
-
+	changeEndTimeSlot = time => { 
+		const prev = this.setTimeSlot[this.setTimeIdx].endTime;
+		this.setTimeSlot[this.setTimeIdx].endTime = time;
+		this.displayTimeSlot('end', prev);
+	}
 	@action
-	changeDays = (id, days) => this.setTimeSlot[this.setTimeIdx][id] = days;
+	changeDays = (id, days) =>  {
+		const startInfo = this.setTimeSlot[this.setTimeIdx].startTime;
+		this.setTimeSlot[this.setTimeIdx][id] = days;
+		this.displayTimeSlot('start', startInfo);
+	}
 }
