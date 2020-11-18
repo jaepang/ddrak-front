@@ -187,7 +187,7 @@ export default class CalendarStore {
 			{club: '막무간애', color: '#FF6B76', days: mmgeDays},
 			{club: '모여락', color: '#CD9CF4', days: myrDays}
 		];
-		//let clubEvents = [];
+
 		if(!startTime || !endTime 
 		|| (lfdmDays.length===0 && mmgeDays.length===0 && myrDays.length===0))
 			return;
@@ -202,9 +202,10 @@ export default class CalendarStore {
 
 		let time = this.currentDate;
 		let days = [];
-		clubDays.map(c => {
-			days = [];
-			if(c.days.length > 0) {
+		clubDays
+			.filter(c => c.days.length > 0)
+			.map(c => {
+				days = [];
 				c.days.map(d => days.push(dayParser[d]));
 				time = getFirstDay(days[0], this.currentDate);
 				const event = {
@@ -213,8 +214,8 @@ export default class CalendarStore {
 					startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
 					endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
 					groupId: startTime,
-					creator: 'admin',
-					
+					creator: this.root.page.username,
+				
 					title: c.club,
 					club: c.club,
 					start: time,
@@ -223,8 +224,9 @@ export default class CalendarStore {
 					color: c.color
 				}
 				this.calendarApi.addEvent(event);
-			}
-		});
+				console.log(this.calendarApi.getEvents());
+				return c;
+			});
 	}
 
 	@action
