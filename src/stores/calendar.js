@@ -102,14 +102,21 @@ export default class CalendarStore {
 	}
 
 	@action
-	eventChange = (changeInfo) => {
+	eventChange = changeInfo => {
 		const newEvent = changeInfo.event;
-		console.log(newEvent);
-		const storedEvent = this.data.find((e) => e.id === Number(changeInfo.event.id));
+		const oldEvent = changeInfo.oldEvent;
+		const storedEvent = this.data.find(e => e.id === Number(changeInfo.event.id));
 	    if (storedEvent) {
 			this.dataSubmitType = 'patch';
 			this.updateData(storedEvent, newEvent);
     	}
+		else if(this.root.page.setCalendarMode) {
+			const start = newEvent.start;
+			const end = newEvent.end;
+			const cur = this.setTimeSlot[oldEvent.groupId];
+			cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
+			cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
+		}
 		this.disableSubmitButton = false;
 	}
 
@@ -122,7 +129,7 @@ export default class CalendarStore {
 			end: event.end,
 			color: event.color,
 			club: event.title,
-			creator: 'admin',
+			creator: this.root.page.username,
 			groupId: event.title + date.toISOString(),
 			daysOfWeek: [date.getDay()],
 			startTime: event.start.getHours() + ':' + event.start.getMinutes(),
@@ -193,7 +200,7 @@ export default class CalendarStore {
 			return;
 		if(cur.displayed) {
 			const tar = this.calendarApi.getEvents().filter(e => 
-				`${('0'+e[type].getHours()).slice(-2)}:00` === info
+				`${('0'+e[type].getHours()).slice(-2)}:${('0'+e[type].getMinutes()).slice(-2)}` === info
 			);
 			tar.map(t => t.remove());
 		}
@@ -213,7 +220,7 @@ export default class CalendarStore {
 					endTime: endTime,
 					startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
 					endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
-					groupId: startTime,
+					groupId: this.setTimeIdx,
 					creator: this.root.page.username,
 				
 					title: c.club,
@@ -224,7 +231,6 @@ export default class CalendarStore {
 					color: c.color
 				}
 				this.calendarApi.addEvent(event);
-				console.log(this.calendarApi.getEvents());
 				return c;
 			});
 	}
