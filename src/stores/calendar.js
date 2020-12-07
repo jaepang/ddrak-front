@@ -114,20 +114,27 @@ export default class CalendarStore {
 			const start = newEvent.start;
 			const end = newEvent.end;
 			const cur = this.setTimeSlot[oldEvent.groupId];
-			cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
-			cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
+			if(cur) {
+				cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
+				cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
+			}
 		}
 		this.disableSubmitButton = false;
 	}
 
 	@action
 	eventReceive = event => {
+		const color = {
+			'악의꽃': '#79A3F4',
+			'막무간애': '#FF6B76',
+			'모여락': '#CD9CF4' 
+		}
 		const date = event.start;
 		let jsonData = {
 			title: event.title,
 			start: event.start,
 			end: event.end,
-			color: event.color,
+			color: color[event.title],
 			club: event.title,
 			creator: this.root.page.username,
 			groupId: event.title + date.toISOString(),
@@ -157,6 +164,8 @@ export default class CalendarStore {
 		this.updatedData = [];
 		this.dataSubmitType = '';
 		setTimeout(() => this.getData(true), 1000);
+		if(this.root.page.setCalendarMode)
+			this.root.page.disableSetCalendarMode();
 	}
 
 	@action
@@ -199,40 +208,41 @@ export default class CalendarStore {
 		|| (lfdmDays.length===0 && mmgeDays.length===0 && myrDays.length===0))
 			return;
 		if(cur.displayed) {
-			const tar = this.calendarApi.getEvents().filter(e => 
-				`${('0'+e[type].getHours()).slice(-2)}:${('0'+e[type].getMinutes()).slice(-2)}` === info
-			);
-			tar.map(t => t.remove());
+			for(let e of this.calendarApi.getEvents())
+				console.log(e.groupId);
+			const tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
+			for(let t of tar)
+				t.remove();
+			this.updatedData = this.updatedData.filter(e => e.groupId !== this.setTimeIdx);
 		}
 		else
 			cur.displayed = true;
 
 		let time = this.currentDate;
-		let days = [];
-		clubDays
-			.filter(c => c.days.length > 0)
-			.map(c => {
-				days = [];
-				c.days.map(d => days.push(dayParser[d]));
-				time = getFirstDay(days[0], this.currentDate);
-				const event = {
-					startTime: startTime,
-					endTime: endTime,
-					startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
-					endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
-					groupId: this.setTimeIdx,
-					creator: this.root.page.username,
-				
-					title: c.club,
-					club: c.club,
-					start: time,
-					end: time,
-					daysOfWeek: days,
-					color: c.color
-				}
-				this.calendarApi.addEvent(event);
-				return c;
-			});
+		const filteredClubs = clubDays.filter(c => c.days.length > 0);
+		for(let c of filteredClubs) {
+			let days = [];
+			c.days.map(d => days.push(dayParser[d]));
+			time = getFirstDay(days[0], this.currentDate);
+			const event = {
+				startTime: startTime,
+				endTime: endTime,
+				startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
+				endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
+				groupId: this.setTimeIdx,
+				creator: this.root.page.username,
+			
+				title: c.club,
+				club: c.club,
+				start: time,
+				end: time,
+				daysOfWeek: days,
+				color: c.color
+			}
+			this.calendarApi.addEvent(event);
+			this.updatedData.push(event);
+		}
+		this.disableSubmitButton = false;
 	}
 
 	@action
