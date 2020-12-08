@@ -171,11 +171,10 @@ export default class CalendarStore {
 	@action
 	enableSetCalendarMode = () => {
 		this.currentDateChange(getFirstDay(1, this.currentDate));
-		this.data = [];
+		this.data = this.data.filter(d => d.creator === 'admin');
 		this.setTimeSlot.push({
 			isFirst: true,
 			isLast: true,
-			displayed: false,
 			startTime: null,
 			endTime: null,
 			lfdmDays: [],
@@ -204,19 +203,13 @@ export default class CalendarStore {
 			{club: '모여락', color: '#CD9CF4', days: myrDays}
 		];
 
-		if(!startTime || !endTime 
-		|| (lfdmDays.length===0 && mmgeDays.length===0 && myrDays.length===0))
+		if(!startTime || !endTime)
 			return;
-		if(cur.displayed) {
-			for(let e of this.calendarApi.getEvents())
-				console.log(e.groupId);
-			const tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
-			for(let t of tar)
-				t.remove();
-			this.updatedData = this.updatedData.filter(e => e.groupId !== this.setTimeIdx);
-		}
-		else
-			cur.displayed = true;
+
+		const tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
+		for(let t of tar)
+			t.remove();
+		this.updatedData = this.updatedData.filter(e => e.groupId !== this.setTimeIdx);
 
 		let time = this.currentDate;
 		const filteredClubs = clubDays.filter(c => c.days.length > 0);
@@ -242,7 +235,7 @@ export default class CalendarStore {
 			this.calendarApi.addEvent(event);
 			this.updatedData.push(event);
 		}
-		this.disableSubmitButton = false;
+		this.disableSubmitButton = this.calendarApi.getEvents().length === 0;
 	}
 
 	@action
@@ -253,7 +246,6 @@ export default class CalendarStore {
 			this.setTimeSlot.push({
 				isFirst: false,
 				isLast: true,
-				displayed: false,
 				startTime: null,
 				endTime: null,
 				lfdmDays: [],
