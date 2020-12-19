@@ -8,6 +8,8 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 export default class CalendarStore {
 	@observable data = [];
 	@observable updatedData = [];
+	@observable addedData = [];
+	@observable deletedData = [];
 	@observable dataSubmitType = '';
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
@@ -37,7 +39,7 @@ export default class CalendarStore {
 	})
 
 	@action
-	getCalendarApi = (ref) => this.calendarApi = ref;
+	getCalendarApi = ref => this.calendarApi = ref;
 
 	@action
 	setCurDate = () => {
@@ -47,7 +49,7 @@ export default class CalendarStore {
 	}
 
 	@action
-	currentDateChange = (date) => {
+	currentDateChange = date => {
 		const y = this.currentDate.getFullYear();
 		const m = this.currentDate.getMonth();
 		this.currentDate = date;
@@ -57,6 +59,7 @@ export default class CalendarStore {
 	}
 	
 	moveToday = () => this.currentDateChange(new Date());
+
 	@action
 	moveRight = () => {
 		const y = this.currentDate.getFullYear();
@@ -67,6 +70,7 @@ export default class CalendarStore {
 		this.updateMonthData(y, m, this.currentDate);
 		this.setCurDate();
 	}
+
 	@action
 	moveLeft = () => {
 		const y = this.currentDate.getFullYear();
@@ -86,7 +90,7 @@ export default class CalendarStore {
 	}
 
 	@action
-	updateData = (tar, e) => {
+	updateData = (tar, e, mode) => {
 		const { title, allDay, start, end } = e;
 		tar.title = title;
 		tar.allDay = allDay;
@@ -98,7 +102,10 @@ export default class CalendarStore {
 			tar.startTime = startTime || tar.startTime;
 			tar.endTime = endTime || tar.endTime;
 		}
-		this.updatedData.push(tar);
+		if(mode === 'patch')
+			this.updatedData.push(tar);
+		else if(mode === 'post')
+			this.addedData.push(tar);
 	}
 
 	@action
@@ -106,17 +113,22 @@ export default class CalendarStore {
 		const newEvent = changeInfo.event;
 		const oldEvent = changeInfo.oldEvent;
 		const storedEvent = this.data.find(e => e.id === Number(changeInfo.event.id));
-	    if (storedEvent) {
-			this.dataSubmitType = 'patch';
-			this.updateData(storedEvent, newEvent);
-    	}
-		else if(this.root.page.setCalendarMode) {
+	    if(storedEvent)
+			this.updateData(storedEvent, newEvent, 'patch');
+    	
+		else {
 			const start = newEvent.start;
 			const end = newEvent.end;
 			const cur = this.setTimeSlot[oldEvent.groupId];
 			if(cur) {
 				cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
 				cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
+				const registeredEvent = this.addedData.find(e => e.groupId === Number(changeInfo.event.groupId));
+				if(registeredEvent) {
+					this.addedData = this.addedData.filter(d => d !== registeredEvent);
+					this.updateData(registeredEvent, newEvent, 'post');
+					console.log(this.addedData);
+				}
 			}
 		}
 		this.disableSubmitButton = false;
@@ -155,23 +167,39 @@ export default class CalendarStore {
 	@action
 	submitData = () => {
 		this.disableSubmitButton = true;
-		if(this.dataSubmitType === 'patch')
+		if(this.updatedData.length > 0)
 			this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
-		else if(this.dataSubmitType === 'post') {
-			console.log(this.updatedData);
-			this.updatedData.map((data) => axios.post(`api/`, data));
+		if(this.addedData.length > 0) {
+			console.log(this.addedData);
+			if(this.root.page.setCalendarMode) {
+				this.root.page.disableSetCalendarMode();
+			}
+			this.addedData.map(data => axios.post(`api/`, data));
 		}
+		if(this.deletedData.length > 0) {
+			const result = window.confirm("일정을 삭제합니다. 계속하겠습니까?\n(월별 시간 설정의 경우 기존에 설정한 일정을 삭제합니다)");
+			if(result)
+				this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
+		}
+		
 		this.updatedData = [];
-		this.dataSubmitType = '';
+		this.addedData = [];
+		this.deletedData = [];
 		setTimeout(() => this.getData(true), 1000);
-		if(this.root.page.setCalendarMode)
-			this.root.page.disableSetCalendarMode();
 	}
 
 	@action
 	enableSetCalendarMode = () => {
 		this.currentDateChange(getFirstDay(1, this.currentDate));
-		this.data = this.data.filter(d => d.creator === 'admin');
+		const year = this.currentDate.getFullYear();
+		const month = this.currentDate.getMonth();
+		const from = new Date(year, month, 2).toISOString().substring(0, 10);
+		const to = new Date(year, month, 9).toISOString().substring(0, 10);
+		this.deletedData = this.data.filter(d => d.creator === 'admin')
+			.filter(d => from <= d.start)
+			.filter(d => d.start <= to);
+		console.log(this.deletedData);
+		this.data = [];
 		this.setTimeSlot.push({
 			isFirst: true,
 			isLast: true,
@@ -209,7 +237,7 @@ export default class CalendarStore {
 		const tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
 		for(let t of tar)
 			t.remove();
-		this.updatedData = this.updatedData.filter(e => e.groupId !== this.setTimeIdx);
+		this.addedData = this.addedData.filter(e => e.groupId !== this.setTimeIdx);
 
 		let time = this.currentDate;
 		const filteredClubs = clubDays.filter(c => c.days.length > 0);
@@ -233,7 +261,7 @@ export default class CalendarStore {
 				color: c.color
 			}
 			this.calendarApi.addEvent(event);
-			this.updatedData.push(event);
+			this.addedData.push(event);
 		}
 		this.disableSubmitButton = this.calendarApi.getEvents().length === 0;
 	}
@@ -255,6 +283,7 @@ export default class CalendarStore {
 		}
 		this.setTimeIdx++;
 	}
+
 	@action
 	prevTimeSlot = () => this.setTimeIdx--;
 
@@ -264,12 +293,14 @@ export default class CalendarStore {
 		this.setTimeSlot[this.setTimeIdx].startTime = time;
 		this.displayTimeSlot('start', prev);
 	}
+
 	@action
 	changeEndTimeSlot = time => { 
 		const prev = this.setTimeSlot[this.setTimeIdx].endTime;
 		this.setTimeSlot[this.setTimeIdx].endTime = time;
 		this.displayTimeSlot('end', prev);
 	}
+
 	@action
 	changeDays = (id, days) =>  {
 		const startInfo = this.setTimeSlot[this.setTimeIdx].startTime;
