@@ -31,9 +31,13 @@ class Calendar extends Component {
 					const color = {
 						'악의꽃': '#79A3F4',
 						'막무간애': '#FF6B76',
-						'모여락': '#CD9CF4'
+						'모여락': '#CD9CF4',
+						'합주': '#79A3F4',
+						'합주 테스트': '#FF6B76',
+						'공연': '#CD9CF4'
 					};
 					return {
+						id: eventEl.innerText + new Date().toISOString(),
 	    				title: eventEl.innerText,
 					    duration: '02:00',
 						color: color[eventEl.innerText]

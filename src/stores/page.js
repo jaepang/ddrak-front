@@ -10,6 +10,7 @@ export default class PageStore {
 	@observable username = '';
 	@observable usernameDisplay = '';
 	@observable usertype = 'guest';
+	@observable userclub = 'none';
 	@observable isAdmin = false;
 	@observable auth = {
 		username: '',
@@ -49,6 +50,7 @@ export default class PageStore {
 				this.usernameDisplay = this.username.replace('admin',' 관리자');
 				this.isAdmin = this.username !== this.usernameDisplay;
 				this.setUsertype(this.username);
+				this.setUserclub(this.username, this.usertype);
 				this.auth.username = '';
 				this.auth.password = '';
 				this.openModal = false;
@@ -64,6 +66,7 @@ export default class PageStore {
 		this.username = '';
 		this.usernameDisplay = '';
 		this.usertype = 'guest';
+		this.userclub = 'none';
 		this.isAdmin = false;
 	}
 
@@ -78,6 +81,7 @@ export default class PageStore {
 			this.usernameDisplay = this.username.replace('admin', '관리자');
 			this.isAdmin = this.username !== this.usernameDisplay;
 			this.setUsertype(this.username);
+			this.setUserclub(this.username, this.usertype);
 		} catch(error) {
 			if(error.response.status === 401) {
 				localStorage.removeItem('token');
@@ -117,6 +121,14 @@ export default class PageStore {
 		}
 		else
 			this.usertype = 'club';
+	}
+
+	@action
+	setUserclub = (username, usertype) => {
+		if(usertype === 'club')
+			this.userclub = username;
+		else if(usertype === 'clubAdmin')
+			this.userclub = username.substring(0, username.length-5);
 	}
 
 	@action

@@ -14,6 +14,7 @@ class Header extends Component {
 		const { calendar } = this.props;
 		const cur = calendar.curDateObj;
 		const { bfDate, aftDate, yearChange, title } = calcMonth(cur);
+		const isFullAdmin = calendar.root.page.username === 'admin';
 		return(
 			<div css={style}>
 				{ !yearChange && <h1>{cur.year}년 {title}월</h1> }
@@ -28,13 +29,13 @@ class Header extends Component {
 						size="large" 
 						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
 						onClick={calendar.moveLeft}
-						disabled={calendar.root.page.setCalendarMode}
+						disabled={calendar.root.page.setCalendarMode && isFullAdmin}
 					/>
 					<ButtonIcon
 						size="large" 
 						icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
 						onClick={calendar.moveRight}
-						disabled={calendar.root.page.setCalendarMode}
+						disabled={calendar.root.page.setCalendarMode && isFullAdmin}
 					/>
 					<Button
 						shaded
@@ -42,7 +43,7 @@ class Header extends Component {
 						variant="border-filled"
 						onClick={calendar.moveToday}
 						css={buttonStyle}
-						disabled={calendar.root.page.setCalendarMode}
+						disabled={calendar.root.page.setCalendarMode && isFullAdmin}
 					/>
 				</div>
 			</div>

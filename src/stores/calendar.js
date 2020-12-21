@@ -10,7 +10,6 @@ export default class CalendarStore {
 	@observable updatedData = [];
 	@observable addedData = [];
 	@observable deletedData = [];
-	@observable dataSubmitType = '';
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
 	@observable curDateObj = {
@@ -90,7 +89,7 @@ export default class CalendarStore {
 	}
 
 	@action
-	updateData = (tar, e, mode) => {
+	updateData = (tar, e, data) => {
 		const { title, allDay, start, end } = e;
 		tar.title = title;
 		tar.allDay = allDay;
@@ -102,20 +101,16 @@ export default class CalendarStore {
 			tar.startTime = startTime || tar.startTime;
 			tar.endTime = endTime || tar.endTime;
 		}
-		if(mode === 'patch')
-			this.updatedData.push(tar);
-		else if(mode === 'post')
-			this.addedData.push(tar);
+		data.push(tar);
 	}
 
 	@action
 	eventChange = changeInfo => {
 		const newEvent = changeInfo.event;
 		const oldEvent = changeInfo.oldEvent;
-		const storedEvent = this.data.find(e => e.id === Number(changeInfo.event.id));
+		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
 	    if(storedEvent)
-			this.updateData(storedEvent, newEvent, 'patch');
-    	
+			this.updateData(storedEvent, newEvent, this.updatedData);
 		else {
 			const start = newEvent.start;
 			const end = newEvent.end;
@@ -123,11 +118,17 @@ export default class CalendarStore {
 			if(cur) {
 				cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
 				cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
-				const registeredEvent = this.addedData.find(e => e.groupId === Number(changeInfo.event.groupId));
+				for(let event of this.addedData.filter(event => event.id === changeInfo.event.id)) {
+					event.startTime = cur.startTime;
+					event.endTime = cur.endTime;
+				}
+			}
+			else {
+				const registeredEvent = this.addedData.find(e => e.id === changeInfo.event.id);
 				if(registeredEvent) {
-					this.addedData = this.addedData.filter(d => d !== registeredEvent);
-					this.updateData(registeredEvent, newEvent, 'post');
-					console.log(this.addedData);
+					const idx = this.addedData.indexOf(registeredEvent);
+					this.addedData.splice(idx, 1);
+					this.updateData(registeredEvent, newEvent, this.addedData);
 				}
 			}
 		}
@@ -139,25 +140,35 @@ export default class CalendarStore {
 		const color = {
 			'악의꽃': '#79A3F4',
 			'막무간애': '#FF6B76',
-			'모여락': '#CD9CF4' 
+			'모여락': '#CD9CF4',
+			'합주': '#79A3F4',
+			'합주 테스트': '#FF6B76',
+			'공연': '#CD9CF4'
 		}
 		const date = event.start;
+		const username = this.root.page.username;
+		const isFullAdmin = username === 'admin';
 		let jsonData = {
+			id: event.id,
 			title: event.title,
 			start: event.start,
 			end: event.end,
 			color: color[event.title],
-			club: event.title,
-			creator: this.root.page.username,
-			groupId: event.title + date.toISOString(),
-			daysOfWeek: [date.getDay()],
-			startTime: event.start.getHours() + ':' + event.start.getMinutes(),
-			endTime: event.end.getHours() + ':' + event.end.getMinutes(),
-			startRecur: new Date(date.getFullYear(), date.getMonth(), 1),
-			endRecur: new Date(date.getFullYear(), date.getMonth()+1, 1)
+			club: isFullAdmin ? event.title : this.root.page.userclub,
+			creator: username
 		}
-		this.updatedData.push(jsonData);
-		this.dataSubmitType = 'post';
+		if(isFullAdmin) {
+			jsonData = {
+				...jsonData,
+				groupId: event.title + date.toISOString(),
+				daysOfWeek: [date.getDay()],
+				startTime: event.start.getHours() + ':' + event.start.getMinutes(),
+				endTime: event.end.getHours() + ':' + event.end.getMinutes(),
+				startRecur: new Date(date.getFullYear(), date.getMonth(), 1),
+				endRecur: new Date(date.getFullYear(), date.getMonth()+1, 1)
+			}
+		}
+		this.addedData.push(jsonData);
 		this.disableSubmitButton = false;
 	}
 
@@ -166,22 +177,23 @@ export default class CalendarStore {
 	 * */
 	@action
 	submitData = () => {
-		this.disableSubmitButton = true;
+		if(this.deletedData.length > 0) {
+			const result = window.confirm("일정을 삭제합니다. 계속하겠습니까?\n(월별 시간 설정의 경우 기존에 설정한 일정을 삭제합니다)");
+			if(result)
+				this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
+			else
+				return;
+		}
 		if(this.updatedData.length > 0)
 			this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
 		if(this.addedData.length > 0) {
-			console.log(this.addedData);
 			if(this.root.page.setCalendarMode) {
 				this.root.page.disableSetCalendarMode();
 			}
 			this.addedData.map(data => axios.post(`api/`, data));
 		}
-		if(this.deletedData.length > 0) {
-			const result = window.confirm("일정을 삭제합니다. 계속하겠습니까?\n(월별 시간 설정의 경우 기존에 설정한 일정을 삭제합니다)");
-			if(result)
-				this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
-		}
-		
+
+		this.disableSubmitButton = true;
 		this.updatedData = [];
 		this.addedData = [];
 		this.deletedData = [];
@@ -190,25 +202,29 @@ export default class CalendarStore {
 
 	@action
 	enableSetCalendarMode = () => {
-		this.currentDateChange(getFirstDay(1, this.currentDate));
-		const year = this.currentDate.getFullYear();
-		const month = this.currentDate.getMonth();
-		const from = new Date(year, month, 2).toISOString().substring(0, 10);
-		const to = new Date(year, month, 9).toISOString().substring(0, 10);
-		this.deletedData = this.data.filter(d => d.creator === 'admin')
-			.filter(d => from <= d.start)
-			.filter(d => d.start <= to);
-		console.log(this.deletedData);
-		this.data = [];
-		this.setTimeSlot.push({
-			isFirst: true,
-			isLast: true,
-			startTime: null,
-			endTime: null,
-			lfdmDays: [],
-			mmgeDays: [],
-			myrDays: []
-		});
+		if(this.root.page.username === 'admin') {
+			this.currentDateChange(getFirstDay(1, this.currentDate));
+			const year = this.currentDate.getFullYear();
+			const month = this.currentDate.getMonth();
+			const from = new Date(year, month, 2).toISOString().substring(0, 10);
+			const to = new Date(year, month, 9).toISOString().substring(0, 10);
+			this.deletedData = this.data.filter(d => d.creator === 'admin')
+				.filter(d => from <= d.start)
+				.filter(d => d.start <= to);
+			this.data = [];
+			this.setTimeSlot.push({
+				isFirst: true,
+				isLast: true,
+				startTime: null,
+				endTime: null,
+				lfdmDays: [],
+				mmgeDays: [],
+				myrDays: []
+			});
+		} else {
+			this.data = this.data.filter(d => d.creator === 'admin')
+				.filter(d => d.club !== this.root.page.userclub); 
+		}
 	}
 
 	@action
