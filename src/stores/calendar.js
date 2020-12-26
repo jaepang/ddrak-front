@@ -172,9 +172,6 @@ export default class CalendarStore {
 		this.disableSubmitButton = false;
 	}
 
-	/* TODO
-	 * this is only for edit, add, should implement delete
-	 * */
 	@action
 	submitData = () => {
 		if(this.deletedData.length > 0) {
@@ -202,6 +199,12 @@ export default class CalendarStore {
 
 	@action
 	enableSetCalendarMode = () => {
+		this.setTimeSlot.push({
+				isFirst: true,
+				isLast: true,
+				startTime: null,
+				endTime: null
+		});
 		if(this.root.page.username === 'admin') {
 			this.currentDateChange(getFirstDay(1, this.currentDate));
 			const year = this.currentDate.getFullYear();
@@ -212,18 +215,31 @@ export default class CalendarStore {
 				.filter(d => from <= d.start)
 				.filter(d => d.start <= to);
 			this.data = [];
-			this.setTimeSlot.push({
-				isFirst: true,
-				isLast: true,
-				startTime: null,
-				endTime: null,
+			this.setTimeSlot[0] = {
+				...this.setTimeSlot[0],
 				lfdmDays: [],
 				mmgeDays: [],
 				myrDays: []
-			});
+			};
 		} else {
-			this.data = this.data.filter(d => d.creator === 'admin')
-				.filter(d => d.club !== this.root.page.userclub); 
+			const clubData = this.data.filter(d => d.club === this.root.page.userclub);
+			let data = this.data.filter(d => d.club !== this.root.page.userclub)
+				.concat(clubData.filter(d => d.creator !== 'admin'));
+			this.data = [];
+			for(let idx in data) {
+				const own = this.root.page.username === data[idx].creator;
+				const newData = {
+					...data[idx],
+					editable: own,
+					color: own ? null:'#777'
+				};
+				this.data.push(newData);
+			}
+			
+			this.setTimeSlot[0] = {
+				...this.setTimeSlot[0],
+				title: ''
+			};
 		}
 	}
 
@@ -238,9 +254,10 @@ export default class CalendarStore {
 	}
 
 	@action
-	displayTimeSlot = (type, info) => {
+	displayTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
-		const { startTime, endTime, lfdmDays, mmgeDays, myrDays } = cur;
+		const { startTime, endTime, lfdmDays, mmgeDays, myrDays, title } = cur;
+		const isFullAdmin = this.root.page.username === 'admin';
 		const clubDays = [
 			{club: '악의꽃', color: '#79A3F4', days: lfdmDays},
 			{club: '막무간애', color: '#FF6B76', days: mmgeDays},
@@ -250,31 +267,65 @@ export default class CalendarStore {
 		if(!startTime || !endTime)
 			return;
 
-		const tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
-		for(let t of tar)
-			t.remove();
-		this.addedData = this.addedData.filter(e => e.groupId !== this.setTimeIdx);
+		let tar;
+		if(isFullAdmin) {
+			tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
+			this.addedData = this.addedData.filter(e => e.groupId !== this.setTimeIdx);
+			for(let t of tar)
+				t.remove();
+		}
+		else {
+			tar = this.calendarApi.getEvents().find(e => e.id === this.root.page.userclub + String(this.setTimeIdx));
+			this.addedData = this.addedData.filter(e => e.id !== this.root.page.userclub + String(this.setTimeIdx));
+			if(tar)
+				tar.remove();
+		}
 
-		let time = this.currentDate;
-		const filteredClubs = clubDays.filter(c => c.days.length > 0);
-		for(let c of filteredClubs) {
-			let days = [];
-			c.days.map(d => days.push(dayParser[d]));
-			time = getFirstDay(days[0], this.currentDate);
-			const event = {
-				startTime: startTime,
-				endTime: endTime,
-				startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
-				endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
-				groupId: this.setTimeIdx,
+		let event;
+		if(isFullAdmin) {
+			let time = this.currentDate;
+			const filteredClubs = clubDays.filter(c => c.days.length > 0);
+			for(let c of filteredClubs) {
+				let days = [];
+				c.days.map(d => days.push(dayParser[d]));
+				time = getFirstDay(days[0], this.currentDate);
+
+				event = {
+					startTime: startTime,
+					endTime: endTime,
+					startRecur: new Date(time.getFullYear(), time.getMonth(), 1),
+					endRecur: new Date(time.getFullYear(), time.getMonth()+1, 1),
+					groupId: this.setTimeIdx,
+					creator: this.root.page.username,
+				
+					title: c.club,
+					club: c.club,
+					start: time,
+					end: time,
+					daysOfWeek: days,
+					color: c.color
+				}
+
+				this.calendarApi.addEvent(event);
+				this.addedData.push(event);
+			}
+		}
+		else {
+			/*const [startHour, startMin] = startTime.split(':');
+			const [endHour, endMin] = endTime.split(':');
+			let start = new Date(this.currentDate);
+			let end = new Date(this.currentDate);
+			start.setHours(startHour, startMin);
+			end.setHours(endHour, endMin);*/
+
+			event = {
+				start: startTime,
+				end: endTime,
+				title: title,
+				id: this.root.page.userclub + String(this.setTimeIdx),
 				creator: this.root.page.username,
-			
-				title: c.club,
-				club: c.club,
-				start: time,
-				end: time,
-				daysOfWeek: days,
-				color: c.color
+				club: this.root.page.userclub,
+				//color: c.color
 			}
 			this.calendarApi.addEvent(event);
 			this.addedData.push(event);
@@ -292,10 +343,22 @@ export default class CalendarStore {
 				isLast: true,
 				startTime: null,
 				endTime: null,
-				lfdmDays: [],
-				mmgeDays: [],
-				myrDays: []
 			});
+			const idx = this.setTimeSlot.length - 1;
+			if(this.root.page.username === 'admin') {
+				this.setTimeSlot[idx] = {
+					...this.setTimeSlot[idx],
+					lfdmDays: [],
+					mmgeDays: [],
+					myrDays: []
+				};
+			}
+			else {
+				this.setTimeSlot[idx] = {
+					...this.setTimeSlot[idx],
+					title: ''
+				};
+			}
 		}
 		this.setTimeIdx++;
 	}
@@ -305,22 +368,25 @@ export default class CalendarStore {
 
 	@action
 	changeStartTimeSlot = time =>  { 
-		const prev = this.setTimeSlot[this.setTimeIdx].startTime;
 		this.setTimeSlot[this.setTimeIdx].startTime = time;
-		this.displayTimeSlot('start', prev);
+		this.displayTimeSlot();
 	}
 
 	@action
 	changeEndTimeSlot = time => { 
-		const prev = this.setTimeSlot[this.setTimeIdx].endTime;
 		this.setTimeSlot[this.setTimeIdx].endTime = time;
-		this.displayTimeSlot('end', prev);
+		this.displayTimeSlot();
 	}
 
 	@action
 	changeDays = (id, days) =>  {
-		const startInfo = this.setTimeSlot[this.setTimeIdx].startTime;
 		this.setTimeSlot[this.setTimeIdx][id] = days;
-		this.displayTimeSlot('start', startInfo);
+		this.displayTimeSlot();
+	}
+
+	@action
+	changeTitle = event =>  {
+		this.setTimeSlot[this.setTimeIdx].title = event.target.value;
+		this.displayTimeSlot();
 	}
 }
