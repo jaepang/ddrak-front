@@ -96,12 +96,18 @@ export default class CalendarStore {
 		tar.start = start || tar.start;
 		tar.end = end || tar.end;
 		if(tar.groupId) {
-			const startTime = start.getHours() + ':' + start.getMinutes();
-			const endTime = end.getHours() + ':' + end.getMinutes();
-			tar.startTime = startTime || tar.startTime;
-			tar.endTime = endTime || tar.endTime;
+			for(let event of this.data.filter(e => e.groupId === tar.groupId)) {
+				const startTime = start.getHours() + ':' + start.getMinutes();
+				const endTime = end.getHours() + ':' + end.getMinutes();
+				event.start = start || event.start;
+				event.end = end || event.end;
+				event.startTime = startTime;
+				event.endTime = endTime;
+				data.push(event);
+			}
 		}
-		data.push(tar);
+		else
+			data.push(tar);
 	}
 
 	@action
@@ -126,6 +132,7 @@ export default class CalendarStore {
 			else {
 				const registeredEvent = this.addedData.find(e => e.id === changeInfo.event.id);
 				if(registeredEvent) {
+					console.log(registeredEvent);
 					const idx = this.addedData.indexOf(registeredEvent);
 					this.addedData.splice(idx, 1);
 					this.updateData(registeredEvent, newEvent, this.addedData);
