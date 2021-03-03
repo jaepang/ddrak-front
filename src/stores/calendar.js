@@ -66,7 +66,8 @@ export default class CalendarStore {
 		const d = this.currentDate.getDate();
 		this.currentDate.setDate(d+7);
 		this.calendarApi.next();
-		this.updateMonthData(y, m, this.currentDate);
+		if(!this.root.page.setCalendarMode)
+			this.updateMonthData(y, m, this.currentDate);
 		this.setCurDate();
 	}
 
@@ -77,7 +78,8 @@ export default class CalendarStore {
 		const d = this.currentDate.getDate();
 		this.currentDate.setDate(d-7);
 		this.calendarApi.prev();
-		this.updateMonthData(y, m, this.currentDate);
+		if(!this.root.page.setCalendarMode)
+			this.updateMonthData(y, m, this.currentDate);
 		this.setCurDate();
 	}
 
@@ -114,25 +116,34 @@ export default class CalendarStore {
 	eventChange = changeInfo => {
 		const newEvent = changeInfo.event;
 		const oldEvent = changeInfo.oldEvent;
+		const username = this.root.page.username;
+		const isFullAdmin = username === 'admin';
 		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
 	    if(storedEvent)
 			this.updateData(storedEvent, newEvent, this.updatedData);
 		else {
+			console.log(oldEvent);
 			const start = newEvent.start;
 			const end = newEvent.end;
-			const cur = this.setTimeSlot[oldEvent.groupId];
+			const cur = this.setTimeSlot[oldEvent.groupId] || this.setTimeSlot[Number(oldEvent.id.slice(-1))];
 			if(cur) {
-				cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
-				cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
-				for(let event of this.addedData.filter(event => event.id === changeInfo.event.id)) {
-					event.startTime = cur.startTime;
-					event.endTime = cur.endTime;
+				if(isFullAdmin) {
+					cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
+					cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
+					for(let event of this.addedData.filter(event => event.id === changeInfo.event.id)) {
+						event.startTime = cur.startTime;
+						event.endTime = cur.endTime;
+					}
+				}
+				else {
+					cur.startTime = start;
+					cur.endTime = end;
+					console.log(cur);
 				}
 			}
 			else {
 				const registeredEvent = this.addedData.find(e => e.id === changeInfo.event.id);
 				if(registeredEvent) {
-					console.log(registeredEvent);
 					const idx = this.addedData.indexOf(registeredEvent);
 					this.addedData.splice(idx, 1);
 					this.updateData(registeredEvent, newEvent, this.addedData);
@@ -318,13 +329,6 @@ export default class CalendarStore {
 			}
 		}
 		else {
-			/*const [startHour, startMin] = startTime.split(':');
-			const [endHour, endMin] = endTime.split(':');
-			let start = new Date(this.currentDate);
-			let end = new Date(this.currentDate);
-			start.setHours(startHour, startMin);
-			end.setHours(endHour, endMin);*/
-
 			event = {
 				start: startTime,
 				end: endTime,
@@ -342,7 +346,7 @@ export default class CalendarStore {
 
 	@action
 	nextTimeSlot = () => {
-		const cur = this.setTimeSlot[this.setTimeIdx]
+		const cur = this.setTimeSlot[this.setTimeIdx];
 		if(cur.isLast) {
 			cur.isLast = false;
 			this.setTimeSlot.push({

@@ -177,7 +177,7 @@
     "@storybook/react": "^6.0.26",
     "react-is": "^16.13.1"
   },
-  "proxy": "http://34.71.74.93:8080",
+  "proxy": "http://localhost:8080",
   "secure": false,
   "peerDependencies": {
     "@emotion/core": "^10.0.35"
