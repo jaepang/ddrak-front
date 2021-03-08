@@ -20,6 +20,7 @@ export default class CalendarStore {
 	@observable disableSubmitButton = true;
 	@observable setTimeSlot = [];
 	@observable setTimeIdx = 0;
+	@observable clubCalendar = false;
 
 	constructor(root) { 
 		makeObservable(this);
@@ -27,11 +28,16 @@ export default class CalendarStore {
 	}
 
 	getData = flow(function*(flag) {
-		const cur = this.currentDate
+		const cur = this.currentDate;
 		const from = new Date(cur.getFullYear(), cur.getMonth()-1, 1).toISOString();
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
-    	this.data = res.data;
+		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
+			const clubData = res.data.filter(d => d.creator === this.root.page.userclub + 'admin');
+			this.data = res.data.filter(e => e.creator === 'admin').concat(clubData);
+		}
+		else
+			this.data = res.data.filter(e => e.creator === 'admin');
 		if(flag) {
 			alert('data updated!');
 		}

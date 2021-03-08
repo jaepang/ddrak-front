@@ -54,6 +54,7 @@ export default class PageStore {
 				this.auth.username = '';
 				this.auth.password = '';
 				this.openModal = false;
+				this.root.calendar.getData();
 			}
 		}))
 		.catch(e => alert("로그인 실패"));
@@ -68,6 +69,7 @@ export default class PageStore {
 		this.usertype = 'guest';
 		this.userclub = 'none';
 		this.isAdmin = false;
+		this.root.calendar.getData();
 	}
 
 	getCurUser = flow(function*() {
