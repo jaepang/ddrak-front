@@ -160,4 +160,9 @@ export default class PageStore {
 	}
 	
 	adminPage = () => window.open('/admin');
+
+	@action
+	switchCalendar = () => {
+		this.root.calendar.switchCalendar();
+	}
 }

@@ -33,8 +33,13 @@ export default class CalendarStore {
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
-			const clubData = res.data.filter(d => d.creator === this.root.page.userclub + 'admin');
-			this.data = res.data.filter(e => e.creator === 'admin').concat(clubData);
+			const clubData = res.data.filter(d => d.club === this.root.page.userclub);
+			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
+				.concat(clubData.filter(d => d.creator !== 'admin'));
+			this.data.map(e => {
+				if(e.creator === 'admin')
+					e.color = '#777';
+			});
 		}
 		else
 			this.data = res.data.filter(e => e.creator === 'admin');
@@ -405,5 +410,11 @@ export default class CalendarStore {
 	changeTitle = event =>  {
 		this.setTimeSlot[this.setTimeIdx].title = event.target.value;
 		this.displayTimeSlot();
+	}
+
+	@action
+	switchCalendar = () => {
+		this.clubCalendar = !this.clubCalendar;
+		this.getData();
 	}
 }
