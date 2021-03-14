@@ -83,7 +83,7 @@ export default class PageStore {
 			});
 			this.username = res.data.username;
 			this.usernameDisplay = this.username.replace('admin', '관리자');
-			this.isAdmin = res.data.is_superuser || res.data.groups[0] > 1;
+			this.isAdmin = res.data.is_staff;
 			this.isSuper = res.data.is_superuser;
 			this.setUsertype(this.username);
 			this.setUserclub(this.username, this.usertype);

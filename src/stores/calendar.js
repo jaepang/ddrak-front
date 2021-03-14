@@ -36,10 +36,10 @@ export default class CalendarStore {
 			const clubData = res.data.filter(d => d.club === this.root.page.userclub);
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
 				.concat(clubData.filter(d => d.creator !== 'admin'));
-			this.data.map(e => {
+			for(let e of this.data) {
 				if(e.creator === 'admin')
 					e.color = '#777';
-			});
+			}
 		}
 		else
 			this.data = res.data.filter(e => e.creator === 'admin');
