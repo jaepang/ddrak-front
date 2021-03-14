@@ -127,8 +127,7 @@ export default class CalendarStore {
 	eventChange = changeInfo => {
 		const newEvent = changeInfo.event;
 		const oldEvent = changeInfo.oldEvent;
-		const username = this.root.page.username;
-		const isFullAdmin = username === 'admin';
+		const isSuper = this.root.page.isSuper;
 		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
 	    if(storedEvent)
 			this.updateData(storedEvent, newEvent, this.updatedData);
@@ -138,7 +137,7 @@ export default class CalendarStore {
 			const end = newEvent.end;
 			const cur = this.setTimeSlot[oldEvent.groupId] || this.setTimeSlot[Number(oldEvent.id.slice(-1))];
 			if(cur) {
-				if(isFullAdmin) {
+				if(isSuper) {
 					cur.startTime = `${('0'+start.getHours()).slice(-2)}:${('0'+start.getMinutes()).slice(-2)}`;
 					cur.endTime = `${('0'+end.getHours()).slice(-2)}:${('0'+end.getMinutes()).slice(-2)}`;
 					for(let event of this.addedData.filter(event => event.id === changeInfo.event.id)) {
@@ -149,7 +148,6 @@ export default class CalendarStore {
 				else {
 					cur.startTime = start;
 					cur.endTime = end;
-					console.log(cur);
 				}
 			}
 			else {
@@ -176,17 +174,17 @@ export default class CalendarStore {
 		}
 		const date = event.start;
 		const username = this.root.page.username;
-		const isFullAdmin = username === 'admin';
+		const isSuper = this.root.page.isSuper;
 		let jsonData = {
 			id: event.id,
 			title: event.title,
 			start: event.start,
 			end: event.end,
 			color: color[event.title],
-			club: isFullAdmin ? event.title : this.root.page.userclub,
+			club: isSuper ? event.title : this.root.page.userclub,
 			creator: username
 		}
-		if(isFullAdmin) {
+		if(isSuper) {
 			jsonData = {
 				...jsonData,
 				groupId: event.title + date.toISOString(),
@@ -234,7 +232,7 @@ export default class CalendarStore {
 				startTime: null,
 				endTime: null
 		});
-		if(this.root.page.username === 'admin') {
+		if(this.root.page.isSuper) {
 			this.currentDateChange(getFirstDay(1, this.currentDate));
 			const year = this.currentDate.getFullYear();
 			const month = this.currentDate.getMonth();
@@ -286,7 +284,7 @@ export default class CalendarStore {
 	displayTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
 		const { startTime, endTime, lfdmDays, mmgeDays, myrDays, title } = cur;
-		const isFullAdmin = this.root.page.username === 'admin';
+		const isSuper = this.root.page.isSuper;
 		const clubDays = [
 			{club: '악의꽃', color: '#79A3F4', days: lfdmDays},
 			{club: '막무간애', color: '#FF6B76', days: mmgeDays},
@@ -297,7 +295,7 @@ export default class CalendarStore {
 			return;
 
 		let tar;
-		if(isFullAdmin) {
+		if(isSuper) {
 			tar = this.calendarApi.getEvents().filter(e => e.groupId === String(this.setTimeIdx));
 			this.addedData = this.addedData.filter(e => e.groupId !== this.setTimeIdx);
 			for(let t of tar)
@@ -311,7 +309,7 @@ export default class CalendarStore {
 		}
 
 		let event;
-		if(isFullAdmin) {
+		if(isSuper) {
 			let time = this.currentDate;
 			const filteredClubs = clubDays.filter(c => c.days.length > 0);
 			for(let c of filteredClubs) {

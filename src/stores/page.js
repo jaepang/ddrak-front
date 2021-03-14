@@ -12,6 +12,7 @@ export default class PageStore {
 	@observable usertype = 'guest';
 	@observable userclub = 'none';
 	@observable isAdmin = false;
+	@observable isSuper = false;
 	@observable auth = {
 		username: '',
 		password: '',
@@ -54,6 +55,7 @@ export default class PageStore {
 				this.auth.username = '';
 				this.auth.password = '';
 				this.openModal = false;
+				this.getCurUser();
 				this.root.calendar.getData();
 			}
 		}))
@@ -81,7 +83,8 @@ export default class PageStore {
 			});
 			this.username = res.data.username;
 			this.usernameDisplay = this.username.replace('admin', '관리자');
-			this.isAdmin = this.username !== this.usernameDisplay;
+			this.isAdmin = res.data.is_superuser || res.data.groups[0] > 1;
+			this.isSuper = res.data.is_superuser;
 			this.setUsertype(this.username);
 			this.setUserclub(this.username, this.usertype);
 		} catch(error) {
