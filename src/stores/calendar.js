@@ -37,12 +37,17 @@ export default class CalendarStore {
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
 				.concat(clubData.filter(d => d.creator !== 'admin'));
 			for(let e of this.data) {
-				if(e.creator === 'admin')
+				if(e.creator === 'admin') {
 					e.color = '#777';
+					e.editable = false;
+				}
 			}
 		}
-		else
+		else {
 			this.data = res.data.filter(e => e.creator === 'admin');
+			if(!this.root.page.isSuper)
+				this.data.map(e => e.editable = false);
+		}
 		if(flag) {
 			alert('data updated!');
 		}
