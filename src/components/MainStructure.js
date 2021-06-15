@@ -23,6 +23,7 @@ class MainStructure extends Component {
 
 const style = css `
 	margin: 0;
+	padding: 1.5rem;
 	display: grid;
 	grid-template-columns: 1fr 3fr;
 `;
