@@ -13,7 +13,7 @@ const UserMenuButton = ({icon, label, onClick}) => {
 const style = css `
 	cursor: pointer;
 	border: none;
-	background-color: #FFFFFF;
+	background: transparent;
 	color: #3C4043;
 	width: 100%;
 	height: 100%;

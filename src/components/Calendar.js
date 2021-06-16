@@ -68,7 +68,7 @@ class Calendar extends Component {
 					firstDay={1}
 					headerToolbar={false}
 					allDaySlot={false}
-					height={ vh(80) }
+					height={ vh(89) }
 					events={ calendar.data }
 					slotMinTime="06:00:00"
 					slotMaxTime="30:00:00"
@@ -79,7 +79,7 @@ class Calendar extends Component {
 					eventChange = { this.handleEventChange }
 					slotDuration='01:00:00'
 					slotLabelFormat={ (args) =>
-						<p>{moment(args.date).format("HH[:00]")}</p>
+						<p>{moment(args.date).format("A h[시]")}</p>
 					}
 					dayHeaderContent={ (args) => 
 						<div>
@@ -104,6 +104,9 @@ const globalStyle = css `
 	.fc-scrollgrid td:last-of-type {
 		border-right: none !important;
 	}
+	.fc-col-header {
+		background-color: #F9F7FB;
+	}
 	.fc-col-header-cell-cushion {
 		h2 {
 			font-size: 25px;
@@ -118,26 +121,30 @@ const globalStyle = css `
 		}
 		p {
 			font-size: 0.7rem;
-			margin: 0 auto;
+			margin: 0.4rem 0 auto;
 		}
 		white-space: pre;
 	}
-	.fc-day-today {
-		background-color: #fff !important;
-		h2 {
-			background-color: #00A3DC !important;
-			color: white;
-		}
+	.fc-day-today h2 {
+		background-color: #00A3DC !important;
+		color: white;
+	}
+	.fc-timegrid-col.fc-day-today {
+		background-color: #FFF !important;
+	}
+	.fc-timegrid-slot-label-cushion p {
+		font-size: 0.9rem;
+		letter-spacing: -1px;
 	}
 `;
 const cardStyle = css `
 	background-color: #fff;
-	height: 75%;
+	width: 100%;
+	height: 100%;
 	margin: 2rem auto;
-	padding: 1.5rem;
 	border: none;
-	border-radius: 15px;
-	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+	/*border-radius: 15px;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);*/
 `;
 
 export default Calendar;

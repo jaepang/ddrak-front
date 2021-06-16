@@ -10,11 +10,11 @@ import Sidebar from './Sidebar';
 class MainStructure extends Component {
     render() {
         return (
-            <div css={style}>
-				<Sidebar />
-				<div>
-					<Header />
+            <div>
+				<Header />
+				<div css={style}>
 					<Calendar />
+					<Sidebar />
 				</div>
 			</div>
         );
@@ -23,9 +23,9 @@ class MainStructure extends Component {
 
 const style = css `
 	margin: 0;
-	padding: 1.5rem;
+	padding: 0;
 	display: grid;
-	grid-template-columns: 1fr 3fr;
+	grid-template-columns: 3fr 1fr;
 `;
 
 export default MainStructure;
