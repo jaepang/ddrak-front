@@ -13,11 +13,11 @@ class LoginForm extends Component {
 	render() {
     	return (
       		<form onSubmit={e => this.page.handleLogin(e)}>
-				<h4>로그인</h4>
+				<h2>로그인</h2>
 		        <Input
 	        		type="text"
 		          	name="username"
-					label="Username"
+					label="계정명"
 					labelAlignment="left"
 					placeholder="username"
         		  	value={this.page.auth.username}
@@ -28,7 +28,7 @@ class LoginForm extends Component {
         		<Input
 		          	type="password"
         		  	name="password"
-					label="Password"
+					label="비밀번호"
 					labelAlignment="left"
 					placeholder="password"
 		          	value={this.page.auth.password}
@@ -51,10 +51,11 @@ const inputStyle = css `
 		border-radius: 15px;
 	}
 	label {
-		margin-left: -10px;
+		margin-left: 5px;
 	}
 `;
 const buttonStyle = css `
+	margin-top: 1.2rem;
 	border-radius: 15px;
 `;
 

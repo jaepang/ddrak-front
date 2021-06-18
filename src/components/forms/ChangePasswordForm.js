@@ -13,7 +13,7 @@ class ChangePasswordForm extends Component {
 	render() {
     	return (
       		<form onSubmit={e => this.page.handlePasswordChange(e)}>
-				<h4>비밀번호변경</h4>
+				<h2>비밀번호변경</h2>
 		        <Input
 	        		type="password"
 		          	name="old"
@@ -51,10 +51,11 @@ const inputStyle = css `
 		border-radius: 15px;
 	}
 	label {
-		margin-left: -10px;
+		margin-left: 5px;
 	}
 `;
 const buttonStyle = css `
+	margin-top: 1.2rem;
 	border-radius: 15px;
 `;
 
