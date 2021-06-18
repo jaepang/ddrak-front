@@ -393,14 +393,25 @@ export default class CalendarStore {
 
 	@action
 	changeStartTimeSlot = time =>  { 
-		this.setTimeSlot[this.setTimeIdx].startTime = time;
-		this.displayTimeSlot();
+		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
+			this.setTimeSlot[this.setTimeIdx].startTime = time;
+			this.displayTimeSlot();
+			return;
+		}
+		console.log(this.setTimeSlot[this.setTimeIdx].endTime);
+		alert('시작 시간이 끝 시간보다 나중입니다. 다시 설정해주세요.');
+		return;	
 	}
 
 	@action
 	changeEndTimeSlot = time => { 
-		this.setTimeSlot[this.setTimeIdx].endTime = time;
-		this.displayTimeSlot();
+		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
+			this.setTimeSlot[this.setTimeIdx].endTime = time;
+			this.displayTimeSlot();
+			return;
+		}
+		alert('끝 시간이 시작시간보다 먼저입니다. 다시 설정해주세요.');
+		return;
 	}
 
 	@action
