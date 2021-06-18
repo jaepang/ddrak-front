@@ -42,7 +42,7 @@ class SetTimeSlot extends Component {
 				
 				{ this.isFullAdmin ? (
 					<div>
-						<div css={container}>
+						<div css={timeContainer}>
 							<TimePicker label="시작 시간"
 								css={timePicker}
 								value={cur.startTime}
@@ -160,10 +160,23 @@ const container = css `
 		}
 	}
 `;
+const timeContainer = css `
+	display: flex;
+	justify-content: space-around;
+	button {
+		width: 1.5rem;
+		height: 1.5rem;
+		&:disabled {
+			svg {
+				color: #D7D7D7;
+			}
+		}
+	}
+`;
 const timePicker = css `
 	display: inline-block;
 	border-radius: 15px;
-	width: 48%;
+	width: 44%;
 	margin-bottom: 10px;
 	input {
 		height: 35px;
@@ -171,15 +184,17 @@ const timePicker = css `
 `;
 const weekdayPicker = css `
 	margin-bottom: 1.5rem;
+	display: flex;
+	justify-content: space-evenly;
 	legend {
-		margin-left: 3%;
+		margin-left: 0;
 		margin-bottom: 5px;
 		text-align: left;
 	}
 	label {
-		width: 12%;
+		width: 28px;
 		font-size: 0.9rem;
-		border-radius: 15px;
+		border-radius: 20px;
 	}
 `;
 const buttonStyle = css `

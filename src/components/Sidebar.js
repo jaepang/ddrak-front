@@ -48,8 +48,8 @@ class Sidebar extends Component {
 const style = css `
 	display: block;
 	height: 100vh;
-	margin: 2rem 0;
-	padding: 0 1.5rem;
+	margin: 0;
+	padding: 1rem;
 	border-left: 1px solid #ddd;
 	background-color: #FCFCFC;
 `

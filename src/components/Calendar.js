@@ -49,7 +49,7 @@ class Calendar extends Component {
 			});
 		}
 	}
-	handleEventClick = (info) => alert(info.event.startTime)
+	handleEventClick = (info) => alert(info.event.title)
 	handleEventReceive = info => this.calendar.eventReceive(info.event)
 
 	handleEventChange = (changeInfo) => {
@@ -68,7 +68,7 @@ class Calendar extends Component {
 					firstDay={1}
 					headerToolbar={false}
 					allDaySlot={false}
-					height={ vh(89) }
+					height={ vh(89.8) }
 					events={ calendar.data }
 					slotMinTime="06:00:00"
 					slotMaxTime="30:00:00"
@@ -77,15 +77,22 @@ class Calendar extends Component {
 					eventReceive={this.handleEventReceive}
 					eventClick={ this.handleEventClick }
 					eventChange = { this.handleEventChange }
-					slotDuration='01:00:00'
+					slotDuration='00:30:00'
 					slotLabelFormat={ (args) =>
 						<p>{moment(args.date).format("A h[시]")}</p>
 					}
 					dayHeaderContent={ (args) => 
 						<div>
-							<p>{moment(args.date).format("ddd")}</p>
+							<p>{moment(args.date).format("ddd[ ]")}</p>
 							<h2>{moment(args.date).format("D")}</h2>
 						</div>
+					}
+					eventTimeFormat={ (args) =>
+						<p>{
+							moment(args.date).format("A h[시] mm[분]")
+							.replace("00분", "")
+							
+						}</p>
 					}
 				/>	
 			</div>
@@ -109,21 +116,23 @@ const globalStyle = css `
 	}
 	.fc-col-header-cell-cushion {
 		h2 {
-			font-size: 25px;
+			display: inline;
+			font-size: 1.3rem;
 			margin: 0.25rem auto;
 			padding: 0.4rem;
 			border-radius: 100%;
 
 			font-weight: 400;
 			text-align: center;
-			line-height: 32px;
+			line-height: 50px;
 			letter-spacing: 2px;
 		}
 		p {
-			font-size: 0.7rem;
+			display: inline;
+			font-weight: 400;
+			font-size: 1.2rem;
 			margin: 0.4rem 0 auto;
 		}
-		white-space: pre;
 	}
 	.fc-day-today h2 {
 		background-color: #00A3DC !important;
@@ -133,18 +142,32 @@ const globalStyle = css `
 		background-color: #FFF !important;
 	}
 	.fc-timegrid-slot-label-cushion p {
+		margin: 0 auto;
 		font-size: 0.9rem;
 		letter-spacing: -1px;
+	}
+	.fc-event-main-frame {
+		padding-left: 0.7rem;
+	}
+	.fc-timegrid-event {
+		border-radius: 15px;
+		p {
+			margin: 0.7rem 0 0.4rem 0;
+			font-weight: 300;
+			font-size: 0.95rem;
+		}
+	}
+	.fc-event-title {
+		font-weight: 400;
+		font-size: 1.2rem;
 	}
 `;
 const cardStyle = css `
 	background-color: #fff;
 	width: 100%;
 	height: 100%;
-	margin: 2rem auto;
+	margin: 0 auto;
 	border: none;
-	/*border-radius: 15px;
-	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);*/
 `;
 
 export default Calendar;
