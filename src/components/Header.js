@@ -121,7 +121,7 @@ const container = css `
 	.buttons {
 		position: absolute;
 		top: 55%;
-		left: 15%;
+		left: 12em;
 		transform: translateY(-50%);
 	}
 `;
