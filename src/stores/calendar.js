@@ -140,9 +140,9 @@ export default class CalendarStore {
 			const start = newEvent.start;
 			const end = newEvent.end;
 			if(!isSuper) {
-				const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+				const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 				if(!inDay)// night
-					window.alert('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다.')
+					window.alert('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다.');
 			}
 			const cur = this.setTimeSlot[oldEvent.groupId] || this.setTimeSlot[Number(oldEvent.id.slice(-1))];
 			if(cur) {
@@ -184,6 +184,16 @@ export default class CalendarStore {
 		const date = event.start;
 		const username = this.root.page.username;
 		const isSuper = this.root.page.isSuper;
+		const start = event.start;
+		const end = event.end;
+		if(!isSuper) {
+			const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+			if(!inDay) { // night
+				const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
+				if(result)
+					return;
+			}
+		}
 		let jsonData = {
 			id: event.id,
 			title: event.title,
@@ -222,12 +232,12 @@ export default class CalendarStore {
 				return;
 		}
 		if(this.updatedData.length > 0) {
-			this.updatedData.map((data) => {
+			this.updatedData.forEach((data) => {
 				axios.patch(`api/${data.id}/`, data);
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
-					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 					if(!inDay)
 						this.submitNightData(data);
 					/**
@@ -240,12 +250,12 @@ export default class CalendarStore {
 			if(this.root.page.setCalendarMode) {
 				this.root.page.disableSetCalendarMode();
 			}
-			this.addedData.map(data => {
+			this.addedData.forEach(data => {
 				axios.post(`api/`, data);
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
-					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 					if(!inDay)
 						this.submitNightData(data);
 				}
@@ -448,9 +458,9 @@ export default class CalendarStore {
 		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
 			if(this.setTimeSlot[this.setTimeIdx].endTime) {
 				let end = this.setTimeSlot[this.setTimeIdx].endTime;
-				const inDay = 6 <= time.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+				const inDay = 6 <= time.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 				if(!inDay) { // night
-					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 진행하시겠습니까?')
+					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
 					if(!result)
 						return;
 				}
@@ -469,9 +479,9 @@ export default class CalendarStore {
 		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
 			if(this.setTimeSlot[this.setTimeIdx].startTime) {
 				let start = this.setTimeSlot[this.setTimeIdx].startTime;
-				const inDay = 6 <= start.getHours() && (6 <= time.getHours() || (time.getHours() == 0 && time.getMinutes() == 0));
+				const inDay = 6 <= start.getHours() && (6 <= time.getHours() || (time.getHours() === 0 && time.getMinutes() === 0));
 				if(!inDay) { // night
-					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 진행하시겠습니까?')
+					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
 					if(!result)
 						return;
 				}
