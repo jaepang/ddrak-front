@@ -1,5 +1,4 @@
 import { 
-	faDoorOpen,
 	faKey,
 	faQuestion,
 	faTools,

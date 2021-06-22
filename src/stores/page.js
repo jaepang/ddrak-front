@@ -26,7 +26,7 @@ export default class PageStore {
 	constructor(root) { 
 		makeObservable(this);
 		this.root = root; 
-	}   
+	}
 
 	@action
 	handleFormChange = (e) => {
