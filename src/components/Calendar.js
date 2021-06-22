@@ -88,10 +88,14 @@ class Calendar extends Component {
 						</div>
 					}
 					eventTimeFormat={ (args) =>
+						(moment
+							.duration(moment(args.end).diff(moment(args.date)))
+							.asHours() >= 1.5
+						)
+						&& 
 						<p>{
 							moment(args.date).format("A h[시] mm[분]")
 							.replace("00분", "")
-							
 						}</p>
 					}
 				/>	
@@ -152,12 +156,13 @@ const globalStyle = css `
 	.fc-timegrid-event {
 		border-radius: 15px;
 		p {
-			margin: 0.7rem 0 0.4rem 0;
+			margin: 0.7rem 0 0.3rem 0;
 			font-weight: 300;
 			font-size: 0.95rem;
 		}
 	}
 	.fc-event-title {
+		margin-top: 0.1rem;
 		font-weight: 400;
 		font-size: 1.2rem;
 	}

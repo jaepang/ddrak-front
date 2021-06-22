@@ -137,9 +137,13 @@ export default class CalendarStore {
 	    if(storedEvent)
 			this.updateData(storedEvent, newEvent, this.updatedData);
 		else {
-			console.log(oldEvent);
 			const start = newEvent.start;
 			const end = newEvent.end;
+			if(!isSuper) {
+				const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+				if(!inDay)// night
+					window.alert('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다.')
+			}
 			const cur = this.setTimeSlot[oldEvent.groupId] || this.setTimeSlot[Number(oldEvent.id.slice(-1))];
 			if(cur) {
 				if(isSuper) {
@@ -206,20 +210,46 @@ export default class CalendarStore {
 
 	@action
 	submitData = () => {
+		const isSuper = this.root.page.isSuper;
 		if(this.deletedData.length > 0) {
 			const result = window.confirm("일정을 삭제합니다. 계속하겠습니까?\n(월별 시간 설정의 경우 기존에 설정한 일정을 삭제합니다)");
 			if(result)
 				this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
+				/**
+				 * TODO: delete night data whose original is deleted
+				 */
 			else
 				return;
 		}
-		if(this.updatedData.length > 0)
-			this.updatedData.map((data) => axios.patch(`api/${data.id}/`, data));
+		if(this.updatedData.length > 0) {
+			this.updatedData.map((data) => {
+				axios.patch(`api/${data.id}/`, data);
+				if(!isSuper) {
+					const start = data.start;
+					const end = data.end;
+					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+					if(!inDay)
+						this.submitNightData(data);
+					/**
+					 * TODO: update/delete night data whose original moved to day
+					 */
+				}
+			});
+		}
 		if(this.addedData.length > 0) {
 			if(this.root.page.setCalendarMode) {
 				this.root.page.disableSetCalendarMode();
 			}
-			this.addedData.map(data => axios.post(`api/`, data));
+			this.addedData.map(data => {
+				axios.post(`api/`, data);
+				if(!isSuper) {
+					const start = data.start;
+					const end = data.end;
+					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+					if(!inDay)
+						this.submitNightData(data);
+				}
+			});
 		}
 
 		this.disableSubmitButton = true;
@@ -227,6 +257,28 @@ export default class CalendarStore {
 		this.addedData = [];
 		this.deletedData = [];
 		setTimeout(() => this.getData(true), 1000);
+	}
+
+	submitNightData = (data) => {
+		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDay(), 0, 0);
+		const end = data.end.getHours() < 6 ? data.end:new Date(data.getFullYear(), data.getMonth(), data.end.getDay(), 6, 0);
+		const clubColors = {
+			'악의꽃': '#79A3F4',
+			'막무간애': '#FF6B76',
+			'모여락': '#CD9CF4'
+		};
+		
+		const event = {
+			start: start,
+			end: end,
+			title: this.root.page.userclub,
+			id: this.root.page.userclub + String(this.setTimeIdx),
+			creator: 'admin',
+			club: this.root.page.userclub,
+			color: clubColors[this.root.page.userclub]
+		}
+		console.log(event);
+		axios.post(`api/`, event);
 	}
 
 	@action
@@ -392,8 +444,17 @@ export default class CalendarStore {
 	prevTimeSlot = () => this.setTimeIdx--;
 
 	@action
-	changeStartTimeSlot = time =>  { 
+	changeStartTimeSlot = time =>  {
 		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
+			if(this.setTimeSlot[this.setTimeIdx].endTime) {
+				let end = this.setTimeSlot[this.setTimeIdx].endTime;
+				const inDay = 6 <= time.getHours() && (6 <= end.getHours() || (end.getHours() == 0 && end.getMinutes() == 0));
+				if(!inDay) { // night
+					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 진행하시겠습니까?')
+					if(!result)
+						return;
+				}
+			}
 			this.setTimeSlot[this.setTimeIdx].startTime = time;
 			this.displayTimeSlot();
 			return;
@@ -406,6 +467,16 @@ export default class CalendarStore {
 	@action
 	changeEndTimeSlot = time => { 
 		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
+			if(this.setTimeSlot[this.setTimeIdx].startTime) {
+				let start = this.setTimeSlot[this.setTimeIdx].startTime;
+				const inDay = 6 <= start.getHours() && (6 <= time.getHours() || (time.getHours() == 0 && time.getMinutes() == 0));
+				if(!inDay) { // night
+					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 진행하시겠습니까?')
+					if(!result)
+						return;
+				}
+				
+			}
 			this.setTimeSlot[this.setTimeIdx].endTime = time;
 			this.displayTimeSlot();
 			return;
