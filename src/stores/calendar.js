@@ -1,12 +1,16 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
 import { getFirstDay, dayParser } from '../utils/dateCalculator';
+import moment from 'moment';
+import 'moment/locale/ko';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+moment.locale('ko');
 
 export default class CalendarStore {
 	@observable data = [];
+	@observable adminData = [];
 	@observable updatedData = [];
 	@observable addedData = [];
 	@observable deletedData = [];
@@ -42,11 +46,13 @@ export default class CalendarStore {
 					e.editable = false;
 				}
 			}
+			this.adminData = clubData.filter(d => d.creator === 'admin');
 		}
 		else {
 			this.data = res.data.filter(e => e.creator === 'admin');
 			if(!this.root.page.isSuper)
 				this.data.map(e => e.editable = false);
+			this.adminData = [];
 		}
 		if(flag) {
 			alert('data updated!');
@@ -107,8 +113,8 @@ export default class CalendarStore {
 	}
 
 	@action
-	updateData = (tar, e, data) => {
-		const { title, allDay, start, end } = e;
+	updateData = (tar, newEvent, oldEvent, data) => {
+		const { title, allDay, start, end } = newEvent;
 		tar.title = title;
 		tar.allDay = allDay;
 		tar.start = start || tar.start;
@@ -126,6 +132,19 @@ export default class CalendarStore {
 		}
 		else
 			data.push(tar);
+		if(oldEvent && !this.root.page.isSuper) {
+			console.log(oldEvent);
+			const oldInDay = 6 <= oldEvent.start.getHours() && (6 <= oldEvent.end.getHours() || (oldEvent.end.getHours() === 0 && oldEvent.end.getMinutes() === 0));
+			if(!oldInDay) {
+				const oldStart = oldEvent.start;
+				const oldEnd = oldEvent.end;
+				const start = oldStart.getHours() < 6 ? oldStart:new Date(oldStart.getFullYear(), oldStart.getMonth(), oldStart.getDay(), 0, 0);
+				const end = oldEnd.getHours() < 6 ? oldEnd:new Date(oldEnd.getFullYear(), oldEnd.getMonth(), oldEnd.getDay(), 6, 0);
+				const event = this.adminData.find(e => new Date(e.start).toString() === start.toString() && new Date(e.end).toString() === end.toString());
+				if(event)
+					this.deletedData.push(event);
+		  	}
+		}
 	}
 
 	@action
@@ -134,8 +153,8 @@ export default class CalendarStore {
 		const oldEvent = changeInfo.oldEvent;
 		const isSuper = this.root.page.isSuper;
 		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
-	    if(storedEvent)
-			this.updateData(storedEvent, newEvent, this.updatedData);
+		if(storedEvent)
+			this.updateData(storedEvent, newEvent, oldEvent, this.updatedData);
 		else {
 			const start = newEvent.start;
 			const end = newEvent.end;
@@ -164,7 +183,7 @@ export default class CalendarStore {
 				if(registeredEvent) {
 					const idx = this.addedData.indexOf(registeredEvent);
 					this.addedData.splice(idx, 1);
-					this.updateData(registeredEvent, newEvent, this.addedData);
+					this.updateData(registeredEvent, newEvent, null, this.addedData);
 				}
 			}
 		}
@@ -190,8 +209,10 @@ export default class CalendarStore {
 			const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 			if(!inDay) { // night
 				const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
-				if(result)
+				if(!result) {
+					event.remove();
 					return;
+			 	}
 			}
 		}
 		let jsonData = {
@@ -240,9 +261,6 @@ export default class CalendarStore {
 					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 					if(!inDay)
 						this.submitNightData(data);
-					/**
-					 * TODO: update/delete night data whose original moved to day
-					 */
 				}
 			});
 		}
@@ -271,7 +289,7 @@ export default class CalendarStore {
 
 	submitNightData = (data) => {
 		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDay(), 0, 0);
-		const end = data.end.getHours() < 6 ? data.end:new Date(data.getFullYear(), data.getMonth(), data.end.getDay(), 6, 0);
+		const end = data.end.getHours() < 6 ? data.end:new Date(data.end.getFullYear(), data.end.getMonth(), data.end.getDay(), 6, 0);
 		const clubColors = {
 			'악의꽃': '#79A3F4',
 			'막무간애': '#FF6B76',
@@ -287,7 +305,6 @@ export default class CalendarStore {
 			club: this.root.page.userclub,
 			color: clubColors[this.root.page.userclub]
 		}
-		console.log(event);
 		axios.post(`api/`, event);
 	}
 
