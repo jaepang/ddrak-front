@@ -1,12 +1,16 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
 import { getFirstDay, dayParser } from '../utils/dateCalculator';
+import moment from 'moment';
+import 'moment/locale/ko';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+moment.locale('ko');
 
 export default class CalendarStore {
 	@observable data = [];
+	@observable adminData = [];
 	@observable updatedData = [];
 	@observable addedData = [];
 	@observable deletedData = [];
@@ -42,11 +46,13 @@ export default class CalendarStore {
 					e.editable = false;
 				}
 			}
+			this.adminData = clubData.filter(d => d.creator === 'admin');
 		}
 		else {
 			this.data = res.data.filter(e => e.creator === 'admin');
 			if(!this.root.page.isSuper)
 				this.data.map(e => e.editable = false);
+			this.adminData = [];
 		}
 		if(flag) {
 			alert('data updated!');
@@ -155,7 +161,8 @@ export default class CalendarStore {
 		const oldEvent = changeInfo.oldEvent;
 		const isSuper = this.root.page.isSuper;
 		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
-	    if(storedEvent)
+	    
+		if(storedEvent)
 			this.updateData(storedEvent, newEvent, oldEvent, this.updatedData);
 		else {
 			const start = newEvent.start;
@@ -263,9 +270,6 @@ export default class CalendarStore {
 					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 					if(!inDay)
 						this.submitNightData(data);
-					/**
-					 * TODO: update/delete night data whose original moved to day
-					 */
 				}
 			});
 		}
@@ -294,7 +298,7 @@ export default class CalendarStore {
 
 	submitNightData = (data) => {
 		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDay(), 0, 0);
-		const end = data.end.getHours() < 6 ? data.end:new Date(data.getFullYear(), data.getMonth(), data.end.getDay(), 6, 0);
+		const end = data.end.getHours() < 6 ? data.end:new Date(data.end.getFullYear(), data.end.getMonth(), data.end.getDay(), 6, 0);
 		const clubColors = {
 			'악의꽃': '#79A3F4',
 			'막무간애': '#FF6B76',

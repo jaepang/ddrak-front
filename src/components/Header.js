@@ -51,28 +51,28 @@ class Header extends Component {
 						/>
 					</div>
 				</div>
-				{ (loggedIn && !isFullAdmin) && 
-					<div css={css `margin:auto 0;`}>
-					<Button
-						shaded
-						label="전체 시간표"
-						variant="border-filled"
-						onClick={calendar.switchCalendar}
-						css={buttonLeftStyle}
-						disabled={!calendar.clubCalendar}
-					/>
-					<Button
-						shaded
-						label="동아리 시간표"
-						variant="border-filled"
-						onClick={calendar.switchCalendar}
-						css={buttonRightStyle}
-						disabled={calendar.clubCalendar}
-					/>
-				</div>
-				}
-				{ loggedIn ?
-					<div css={css `margin:auto 0;`}>
+				<div css={containerRight}>
+					{ (loggedIn && !isFullAdmin) && 
+						<div css={changeCalendarButtons}>
+							<Button
+								shaded
+								label="전체 시간표"
+								variant="border-filled"
+								onClick={calendar.switchCalendar}
+								css={buttonLeftStyle}
+								disabled={!calendar.clubCalendar}
+							/>
+							<Button
+								shaded
+								label="동아리 시간표"
+								variant="border-filled"
+								onClick={calendar.switchCalendar}
+								css={buttonRightStyle}
+								disabled={calendar.clubCalendar}
+							/>
+						</div>
+					}
+					{ loggedIn ?
 						<Button
 							shaded
 							label="로그아웃"
@@ -80,9 +80,7 @@ class Header extends Component {
 							onClick={calendar.root.page.handleLogout}
 							css={singleButtonStyle}
 						/>
-					</div>
-				:
-					<div css={css `margin:auto 0;`}>
+					:
 						<Button
 							shaded
 							label="로그인"
@@ -90,8 +88,8 @@ class Header extends Component {
 							onClick={calendar.root.page.openLoginModal}
 							css={singleButtonStyle}
 						/>
-					</div>
-				}
+					}
+				</div>
 			</div>
 		)
 	}
@@ -110,7 +108,7 @@ const style = css `
 const container = css `
 	margin: auto 0;
 	position: relative;
-	width: 80%;
+	width: 25rem;
 	height: 100%;
 	h1 {
 		position: absolute;
@@ -124,6 +122,13 @@ const container = css `
 		left: 12em;
 		transform: translateY(-50%);
 	}
+`;
+const containerRight = css `
+	margin: auto 0;
+	position: relative;
+	float: right;
+	width: 22rem;
+	height: 100%;
 `;
 const buttonLeftStyle = css `
 	border: 1px solid #ddd;
@@ -154,6 +159,7 @@ const buttonRightStyle = css `
 `;
 const buttonStyle = css `
 	color: #3C4043;
+	margin: 0;
 	background-color: #fff;
 	border: 1px solid #ddd;
 	border-radius: 0;
@@ -164,7 +170,15 @@ const buttonStyle = css `
 		color: #3C4043;
 	}
 `;
+
+const changeCalendarButtons = css `
+	margin: auto 0;
+	display: inline-block;
+`;
 const singleButtonStyle = css `
+	margin: auto 0;
+	display: inline-block;
+	float: right;
 	color: #3C4043;
 	background-color: #fff;
 	border: 1px solid #ddd;
