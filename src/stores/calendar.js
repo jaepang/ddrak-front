@@ -107,8 +107,8 @@ export default class CalendarStore {
 	}
 
 	@action
-	updateData = (tar, e, data) => {
-		const { title, allDay, start, end } = e;
+	updateData = (tar, newEvent, oldEvent, data) => {
+		const { title, allDay, start, end } = newEvent;
 		tar.title = title;
 		tar.allDay = allDay;
 		tar.start = start || tar.start;
@@ -126,6 +126,27 @@ export default class CalendarStore {
 		}
 		else
 			data.push(tar);
+		if(oldEvent && !this.root.page.isSuper) {
+			let inDay = 6 <= oldEvent.start.getHours() && (6 <= oldEvent.end.getHours() || (oldEvent.end.getHours() === 0 && oldEvent.end.getMinutes() === 0));
+			if(!inDay) {
+				let start = oldEvent.start.getHours() < 6 ? oldEvent.start:new Date(oldEvent.start.getFullYear(), oldEvent.start.getMonth(), oldEvent.start.getDay(), 0, 0);
+				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.getFullYear(), oldEvent.getMonth(), oldEvent.end.getDay(), 6, 0);
+				const event = this.data.find(e => e.start === start && e.end === end);
+				if(event) {
+					console.log(event);
+					inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+					if(!inDay) {
+						start = start.getHours() < 6 ? start:new Date(start.getFullYear(), start.getMonth(), start.getDay(), 0, 0);
+						end = end.getHours() < 6 ? end:new Date(end.getFullYear(), end.getMonth(), end.getDay(), 6, 0);
+						event.start = start;
+						event.end = end;
+						data.push(event);
+					}
+					else
+						this.deletedData.push(event);
+				}
+			}
+		}
 	}
 
 	@action
@@ -135,7 +156,7 @@ export default class CalendarStore {
 		const isSuper = this.root.page.isSuper;
 		const storedEvent = this.data.find(e => String(e.id) === changeInfo.event.id);
 	    if(storedEvent)
-			this.updateData(storedEvent, newEvent, this.updatedData);
+			this.updateData(storedEvent, newEvent, oldEvent, this.updatedData);
 		else {
 			const start = newEvent.start;
 			const end = newEvent.end;
@@ -164,7 +185,7 @@ export default class CalendarStore {
 				if(registeredEvent) {
 					const idx = this.addedData.indexOf(registeredEvent);
 					this.addedData.splice(idx, 1);
-					this.updateData(registeredEvent, newEvent, this.addedData);
+					this.updateData(registeredEvent, newEvent, null, this.addedData);
 				}
 			}
 		}
@@ -190,8 +211,10 @@ export default class CalendarStore {
 			const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 			if(!inDay) { // night
 				const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
-				if(result)
+				if(!result) {
+					event.remove();
 					return;
+				}
 			}
 		}
 		let jsonData = {
@@ -287,7 +310,6 @@ export default class CalendarStore {
 			club: this.root.page.userclub,
 			color: clubColors[this.root.page.userclub]
 		}
-		console.log(event);
 		axios.post(`api/`, event);
 	}
 
@@ -316,6 +338,8 @@ export default class CalendarStore {
 				myrDays: []
 			};
 		} else {
+			this.clubCalendar = true;
+			this.getData();
 			const clubData = this.data.filter(d => d.club === this.root.page.userclub);
 			let data = this.data.filter(d => d.club !== this.root.page.userclub)
 				.concat(clubData.filter(d => d.creator !== 'admin'));
