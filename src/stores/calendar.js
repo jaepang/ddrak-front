@@ -343,7 +343,6 @@ export default class CalendarStore {
 			};
 		} else {
 			this.clubCalendar = true;
-			this.getData();
 			const clubData = this.data.filter(d => d.club === this.root.page.userclub);
 			let data = this.data.filter(d => d.club !== this.root.page.userclub)
 				.concat(clubData.filter(d => d.creator !== 'admin'));
@@ -482,11 +481,14 @@ export default class CalendarStore {
 	prevTimeSlot = () => this.setTimeIdx--;
 
 	@action
-	changeStartTimeSlot = time =>  {
+	changeStartTimeSlot = time => {
+		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
 		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
 			if(this.setTimeSlot[this.setTimeIdx].endTime) {
-				let end = this.setTimeSlot[this.setTimeIdx].endTime;
-				const inDay = 6 <= time.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+				const end = this.setTimeSlot[this.setTimeIdx].endTime;
+				const endH = typeof(end) === String ? Number(end.slice(0, 2)):end.getHours();
+				const endM = typeof(end) === String ? Number(end.slice(3)):end.getMinutes();
+				const inDay = 6 <= hour && (6 <= endH || (endH === 0 && endM === 0));
 				if(!inDay) { // night
 					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
 					if(!result)
@@ -504,10 +506,13 @@ export default class CalendarStore {
 
 	@action
 	changeEndTimeSlot = time => { 
+		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
+		const min = typeof(time) === String ? Number(time.slice(3)):time.getMinutes();
 		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
 			if(this.setTimeSlot[this.setTimeIdx].startTime) {
-				let start = this.setTimeSlot[this.setTimeIdx].startTime;
-				const inDay = 6 <= start.getHours() && (6 <= time.getHours() || (time.getHours() === 0 && time.getMinutes() === 0));
+				const start = this.setTimeSlot[this.setTimeIdx].startTime;
+				const startH = typeof(start) === String ? Number(start.slice(0, 2)):start.getHours();
+				const inDay = 6 <= startH && (6 <= hour || (hour === 0 && min === 0));
 				if(!inDay) { // night
 					const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
 					if(!result)
