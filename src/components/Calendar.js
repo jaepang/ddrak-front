@@ -49,8 +49,9 @@ class Calendar extends Component {
 			});
 		}
 	}
-	handleEventClick = (info) => alert(info.event.title)
-	handleEventReceive = info => this.calendar.eventReceive(info.event)
+
+	handleEventClick = (info) => alert(info.event.title);
+	handleEventReceive = info => this.calendar.eventReceive(info.event);
 
 	handleEventChange = (changeInfo) => {
 		this.calendar.eventChange(changeInfo);
