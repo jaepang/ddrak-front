@@ -9,11 +9,18 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 moment.locale('ko');
 
 export default class CalendarStore {
+	/* for display */
 	@observable data = [];
-	@observable adminData = [];
+	@observable clubData = {
+		'악의꽃': [],
+		'막무간애': [],
+		'모여락': []
+	};
+	/* for submit */
 	@observable updatedData = [];
 	@observable addedData = [];
 	@observable deletedData = [];
+
 	@observable calendarApi = null;
 	@observable currentDate = new Date();
 	@observable curDateObj = {
@@ -36,23 +43,23 @@ export default class CalendarStore {
 		const from = new Date(cur.getFullYear(), cur.getMonth()-1, 1).toISOString();
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
+		const allClubData = res.data.filter(d => d.creator !== 'admin');
+		allClubData.forEach(d => this.clubData[d.club].push(d));
+		
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
-			const clubData = res.data.filter(d => d.club === this.root.page.userclub);
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
-				.concat(clubData.filter(d => d.creator !== 'admin'));
-			for(let e of this.data) {
+				.concat(this.clubData);
+			this.data.forEach(e => {
 				if(e.creator === 'admin') {
 					e.color = '#777';
 					e.editable = false;
 				}
-			}
-			this.adminData = clubData.filter(d => d.creator === 'admin');
+			});
 		}
 		else {
 			this.data = res.data.filter(e => e.creator === 'admin');
 			if(!this.root.page.isSuper)
 				this.data.map(e => e.editable = false);
-			this.adminData = [];
 		}
 		if(flag) {
 			alert('data updated!');
@@ -356,21 +363,19 @@ export default class CalendarStore {
 				mmgeDays: [],
 				myrDays: []
 			};
-		} else {
+		}
+		else {
 			this.clubCalendar = true;
-			const clubData = this.data.filter(d => d.club === this.root.page.userclub);
-			let data = this.data.filter(d => d.club !== this.root.page.userclub)
-				.concat(clubData.filter(d => d.creator !== 'admin'));
-			this.data = [];
-			for(let idx in data) {
-				const own = this.root.page.username === data[idx].creator;
-				const newData = {
-					...data[idx],
-					editable: own,
-					color: own ? null:'#777'
-				};
-				this.data.push(newData);
-			}
+			this.data = this.data.filter(d => d.club !== this.root.page.userclub)
+								 .concat(this.clubData[this.root.page.userclub]);
+			this.data.forEach(d => {
+				if(this.root.page.username === d.creator)
+					d.editable = true;
+				else {
+					d.editable = false;
+					d.color = '#777';
+				}
+			});
 			
 			this.setTimeSlot[0] = {
 				...this.setTimeSlot[0],
