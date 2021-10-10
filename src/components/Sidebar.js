@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import UserMenu from './UserMenu';
 import ExternalEvents from './ExternalEvents';
 import SetTimeSlot from './SetTimeSlot';
+import BorrowTimeSlot from './BorrowTimeSlot';
 
 @inject('calendar')
 @observer
@@ -17,6 +18,11 @@ class Sidebar extends Component {
 	render() {
 		const { calendar } = this.props;
 		const date = calendar.curDateObj;
+		let userMenuContent;
+		if(!calendar.root.page.setCalendarMode)
+			userMenuContent = <UserMenu />;
+		else
+			userMenuContent = calendar.root.page.borrowTimeMode ? <BorrowTimeSlot />:<SetTimeSlot />;
 		return (
 			<div css={style}>
 				<Card css={cardStyle}>
@@ -33,12 +39,7 @@ class Sidebar extends Component {
 					}
 				</Card>
 				<Card css={cardStyle}>
-					{ !calendar.root.page.setCalendarMode &&
-						<UserMenu />
-					}
-					{ calendar.root.page.setCalendarMode &&
-							<SetTimeSlot />
-					}
+					{ userMenuContent }
 				</Card>
 			</div>
 		);

@@ -3,21 +3,37 @@ import { jsx, css } from '@emotion/core';
 import { inject, observer } from 'mobx-react';
 import React from 'react';
 
-const ExternalEvents = ({username}) => {
+const ExternalEvents = ({isSuper, club, borrow=false}) => {
+	const clubs = ['악의꽃', '막무간애', '모여락'];
+	const target = clubs.filter(c => c !== club);
 	return (
 		<React.Fragment>
-		<div id='externalEvents' css={style}>
-			<h3>원하는 시간으로 드래그하세요</h3>
-			<div className='fc-event lfdm fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-		    	<div className='fc-event-main'>{ username === 'admin' ? '악의꽃':'합주' }</div>
-	  		</div>
-			<div className='fc-event mmge fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-		    	<div className='fc-event-main'>{ username === 'admin' ? '막무간애':'합주 테스트' }</div>
-	  		</div>
-			<div className='fc-event myr fc-h-event fc-daygrid-event fc-daygrid-block-event'>
-		    	<div className='fc-event-main'>{ username === 'admin' ? '모여락':'공연' }</div>
-	  		</div>
-		</div>
+			{!borrow ? 
+				(
+					<div id='externalEvents' css={style}>
+						<h3>원하는 시간으로 드래그하세요</h3>
+						<div className='fc-event lfdm fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+							<div className='fc-event-main'>{ isSuper ? '악의꽃':'합주' }</div>
+						</div>
+						<div className='fc-event mmge fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+							<div className='fc-event-main'>{ isSuper ? '막무간애':'합주 테스트' }</div>
+						</div>
+						<div className='fc-event myr fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+							<div className='fc-event-main'>{ isSuper ? '모여락':'공연' }</div>
+						</div>
+					</div>
+				):(
+					<div id='externalEvents' css={style}>
+						<h3>원하는 시간으로 드래그하세요</h3>
+						<div className='fc-event lfdm fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+							<div className='fc-event-main'>{ target[0] }</div>
+						</div>
+						<div className='fc-event mmge fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+							<div className='fc-event-main'>{ target[1] }</div>
+						</div>
+					</div>
+				)
+			}
 		</React.Fragment>
 	)
 }
@@ -48,5 +64,7 @@ const style = css `
 `;
 
 export default inject(({ page }) => ({
-	username: page.username,
+	isSuper: page.isSuper,
+	club: page.userclub,
+	borrow: page.borrowTimeMode,
 }))(observer(ExternalEvents));

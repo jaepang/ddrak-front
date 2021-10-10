@@ -18,6 +18,12 @@ class UserMenu extends Component {
 		}
 	}
 
+	componentDidUpdate() {
+		if(this.page.loggedIn) {
+			this.page.getCurUser();
+		}
+	}
+
     render() {
         return (
             <div>

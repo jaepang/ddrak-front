@@ -1,6 +1,7 @@
 import { 
 	faKey,
 	faQuestion,
+	faShare,
 	faTools,
 } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -11,12 +12,13 @@ import {
 //const addEvent = { handler: 'openAddEventModal', label: '새 일정 추가', icon: faCalendarPlus };
 const adminPage = { handler: 'adminPage', label: '관리자 페이지', icon: faTools };
 const borrowRequest = { handler: 'openBorrowRequestModal', label: '대여 요청', icon: faPaperPlane };
+const borrowSubmit = { handler: 'enableBorrowTimeMode', label: '대여 등록', icon: faShare };
 const changePassword = { handler: 'openChangePasswordModal', label: '비밀번호 변경', icon: faKey };
 const help = { handler: 'openHelpModal', label: '도움말', icon: faQuestion };
 const setCalendar = { handler: 'enableSetCalendarMode', label: '시간표 등록', icon: faCalendarPlus };
 
 const clubType = {
-	clubAdmin: [ setCalendar, borrowRequest, help, changePassword ],
+	clubAdmin: [ setCalendar, borrowSubmit, borrowRequest, help, changePassword ],
 	club: [ help, changePassword],
 	admin: [ adminPage, setCalendar, changePassword],
 	guest: [ borrowRequest, help]

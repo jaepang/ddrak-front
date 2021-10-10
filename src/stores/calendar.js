@@ -277,6 +277,21 @@ export default class CalendarStore {
 			if(this.root.page.setCalendarMode) {
 				this.root.page.disableSetCalendarMode();
 			}
+			if(this.root.page.borrowTimeMode) {
+				let adminData = [];
+				this.addedData.forEach(data => {
+					const copiedData = {
+						...data,
+						creator: 'admin'
+					}
+					data.color = '#777';
+					adminData.push(copiedData);
+				});
+				console.log(adminData);
+				this.addedData = this.addedData.concat(adminData);
+				console.log(this.addedData);
+				this.root.page.disableBorrowTimeMode();
+			}
 			this.addedData.forEach(data => {
 				axios.post(`api/`, data);
 				if(!isSuper) {

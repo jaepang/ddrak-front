@@ -22,6 +22,7 @@ export default class PageStore {
 	@observable openModal = false;
 	@observable modalContent = LoginForm;
 	@observable setCalendarMode = false;
+	@observable borrowTimeMode = false;
 	
 	constructor(root) { 
 		makeObservable(this);
@@ -71,6 +72,8 @@ export default class PageStore {
 		this.usertype = 'guest';
 		this.userclub = 'none';
 		this.isAdmin = false;
+		this.setCalendarMode = false;
+		this.borrowTimeMode = false;
 		this.root.calendar.getData();
 	}
 
@@ -160,6 +163,16 @@ export default class PageStore {
 	disableSetCalendarMode = () => {
 		this.setCalendarMode = false;
 		this.root.calendar.disableSetCalendarMode();
+	}
+	@action
+	enableBorrowTimeMode = () => {
+		this.borrowTimeMode = true;
+		this.enableSetCalendarMode();
+	}
+	@action
+	disableBorrowTimeMode = () => {
+		this.borrowTimeMode = false;
+		this.disableSetCalendarMode();
 	}
 	
 	adminPage = () => window.open('/admin');
