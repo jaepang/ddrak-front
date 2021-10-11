@@ -48,14 +48,14 @@ class Calendar extends Component {
 				}
 			});
 		}
+		this.calendar.emptyBuffer();
+		this.calendar.handleBorrowedEvents();
 	}
 
 	handleEventClick = (info) => this.calendar.eventClick(info.event);
 	handleEventReceive = info => this.calendar.eventReceive(info.event);
 
-	handleEventChange = (changeInfo) => {
-		this.calendar.eventChange(changeInfo);
-	}
+	handleEventChange = (changeInfo) => this.calendar.eventChange(changeInfo);
 
 	render() {
 		const { calendar } = this.props;

@@ -9,6 +9,13 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 moment.locale('ko');
 
 const inDay = (start, end) => 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+const nightTime = (date, isStart) => {
+	if(isStart)
+		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate()+1, 0, 0);
+	else
+		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0);
+}
+const isBorrowed = (creator, club) => creator !== 'admin' && creator.slice(0, -5) !== club;
 
 export default class CalendarStore {
 	/* for display */
@@ -19,6 +26,7 @@ export default class CalendarStore {
 		'모여락': []
 	};
 	@observable adminData = [];
+	@observable borrowPaddingBuffer = [];
 	/* for submit */
 	@observable updatedData = [];
 	@observable addedData = [];
@@ -51,19 +59,20 @@ export default class CalendarStore {
 		for(let club in this.clubData)
 			this.clubData[club] = allClubData.filter(d => d.club === club);
 		
-		
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
 				.concat(this.clubData[this.root.page.userclub]);
 			this.data.forEach(e => {
-				if(e.creator === 'admin') {
+				/* admin or borrowed data */
+				if(e.creator !== this.root.page.username) {
 					e.color = '#777';
 					e.editable = false;
 				}
 			});
 		}
 		else {
-			this.data = res.data.filter(e => e.creator === 'admin');
+			/* admin data or borrowed data */
+			this.data = res.data.filter(e => e.creator === 'admin' || isBorrowed(e.creator, e.club));
 			if(!this.root.page.isSuper)
 				this.data.map(e => e.editable = false);
 		}
@@ -74,6 +83,70 @@ export default class CalendarStore {
 
 	@action
 	getCalendarApi = ref => this.calendarApi = ref;
+
+	@action
+	emptyBuffer = () => {
+		this.borrowPaddingBuffer.forEach(i => i.remove());
+		this.borrowPaddingBuffer = [];
+	}
+
+	@action
+	handleBorrowedEvents = () => {
+		if(this.root.page.userclub === 'none' || !this.clubCalendar)
+			return;
+
+		const events = this.calendarApi.getEvents();
+		events.forEach(e => {
+			const creator = e.extendedProps.creator;
+			const club = e.extendedProps.club;
+			console.log(creator, club, e);
+			if(isBorrowed(creator, club) && club === this.root.page.userclub) {
+				events.filter(d => d !== e).forEach(event => {
+					if(event.start <= e.start && e.start <= event.end && event.start.getTime() !== e.start.getTime()) {
+						if(event.start <= e.end && e.end <= event.end) {
+							this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+								title: event.title,
+								start: e.end,
+								end: event.end,
+								color: '#777',
+								extendedProps: {
+									creator: 'admin',
+									club: club
+								}
+							}));
+						}
+						this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+							title: event.title,
+							start: event.start,
+							end: e.start,
+							color: '#777',
+							extendedProps: {
+								creator: 'admin',
+								club: club
+							}
+						}));
+						event.remove();
+					}
+					else if(event.start <= e.end && e.end <= event.end && event.end.getTime() !== e.end.getTime()) {
+						this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+							title: event.title,
+							start: e.end,
+							end: event.end,
+							color: '#777',
+							extendedProps: {
+								creator: 'admin',
+								club: club
+							}
+						}));
+						event.remove();
+					}
+					else if(event.start.getTime() === e.start.getTime() && event.end.getTime() === e.end.getTime())
+						event.remove();
+				});
+				e.remove();
+			}
+		})
+	}
 
 	@action
 	setCurDate = () => {
@@ -147,8 +220,8 @@ export default class CalendarStore {
 			data.push(tar);
 		if(oldEvent && !this.root.page.isSuper) {
 			if(!inDay(oldEvent.start, oldEvent.end)) {
-				let start = oldEvent.start.getHours() < 6 ? oldEvent.start:new Date(oldEvent.start.getFullYear(), oldEvent.start.getMonth(), oldEvent.start.getDate()+1, 0, 0);
-				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.end.getFullYear(), oldEvent.end.getMonth(), oldEvent.end.getDate(), 6, 0);
+				let start = nightTime(oldEvent.start, true);
+				let end = nightTime(oldEvent.start, false);
 				const event = this.adminData.find(e => new Date(e.start).getTime() === start.getTime() && 
 													   new Date(e.end).getTime() === end.getTime());
 				if(event)
@@ -219,8 +292,8 @@ export default class CalendarStore {
 				let start = new Date(event.start);
 				let end = new Date(event.end);
 				if(!inDay(start, end)) {
-					start = start.getHours() < 6 ? start:new Date(start.getFullYear(), start.getMonth(), start.getDate()+1, 0, 0);
-					end = end.getHours() < 6 ? end:new Date(end.getFullYear(), end.getMonth(), end.getDate(), 6, 0);
+					start = nightTime(start, true);
+					end = nightTime(end, false);
 					const target = this.adminData.find(e => new Date(e.start).getTime() === start.getTime() && 
 													   		new Date(e.end).getTime() === end.getTime());
 					if(target)
@@ -299,16 +372,9 @@ export default class CalendarStore {
 
 		if(this.addedData.length > 0) {
 			if(this.root.page.borrowTimeMode) {
-				let adminData = [];
 				this.addedData.forEach(data => {
-					const copiedData = {
-						...data,
-						creator: 'admin'
-					}
-					data.color = '#777';
-					adminData.push(copiedData);
+					data.club = data.title;
 				});
-				this.addedData = this.addedData.concat(adminData);
 				this.root.page.disableBorrowTimeMode();
 			}
 			else if(this.root.page.setCalendarMode)
@@ -333,8 +399,8 @@ export default class CalendarStore {
 	}
 
 	submitNightData = (data) => {
-		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDate()+1, 0, 0);
-		const end = data.end.getHours() < 6 ? data.end:new Date(data.end.getFullYear(), data.end.getMonth(), data.end.getDate(), 6, 0);
+		const start = nightTime(data.start, true);
+		const end = nightTime(data.end, false);
 		const clubColors = {
 			'악의꽃': '#79A3F4',
 			'막무간애': '#FF6B76',
