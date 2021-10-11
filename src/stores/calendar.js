@@ -148,7 +148,7 @@ export default class CalendarStore {
 		if(oldEvent && !this.root.page.isSuper) {
 			if(!inDay(oldEvent.start, oldEvent.end)) {
 				let start = oldEvent.start.getHours() < 6 ? oldEvent.start:new Date(oldEvent.start.getFullYear(), oldEvent.start.getMonth(), oldEvent.start.getDate()+1, 0, 0);
-				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.getFullYear(), oldEvent.getMonth(), oldEvent.end.getDate(), 6, 0);
+				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.end.getFullYear(), oldEvent.end.getMonth(), oldEvent.end.getDate(), 6, 0);
 				const event = this.adminData.find(e => new Date(e.start).getTime() === start.getTime() && 
 													   new Date(e.end).getTime() === end.getTime());
 				if(event)
@@ -198,6 +198,37 @@ export default class CalendarStore {
 			}
 		}
 		this.disableSubmitButton = false;
+	}
+
+	@action
+	eventClick = event => {
+		const isAdmin = this.root.page.isAdmin;
+		if(!isAdmin || event.extendedProps.creator !== this.root.page.username) {
+			alert(event.title + '\n' + 
+				  moment(event.start).format("M[월] D[일] A h[시] mm[분 ~ ]").replace("00분", "") +
+				  moment(event.end).format("M[월] D[일] A h[시] mm[분]").replace("00분", ""));
+		}
+		else {
+			const result = window.confirm(event.title + '\n' + 
+				  				   moment(event.start).format("M[월] D[일] A h[시] mm[분 ~ ]").replace("00분", "") +
+				  				   moment(event.end).format("M[월] D[일] A h[시] mm[분\n\n]").replace("00분", "") + 
+								   "이 일정을 삭제하시겠습니까?");
+			if(result) {
+				this.deletedData.push(event);
+
+				let start = new Date(event.start);
+				let end = new Date(event.end);
+				if(!inDay(start, end)) {
+					start = start.getHours() < 6 ? start:new Date(start.getFullYear(), start.getMonth(), start.getDate()+1, 0, 0);
+					end = end.getHours() < 6 ? end:new Date(end.getFullYear(), end.getMonth(), end.getDate(), 6, 0);
+					const target = this.adminData.find(e => new Date(e.start).getTime() === start.getTime() && 
+													   		new Date(e.end).getTime() === end.getTime());
+					if(target)
+						this.deletedData.push(target);
+				}
+				this.submitData();
+			}
+		}
 	}
 
 	@action
@@ -251,16 +282,9 @@ export default class CalendarStore {
 	@action
 	submitData = () => {
 		const isSuper = this.root.page.isSuper;
-		if(this.deletedData.length > 0) {
-			const result = window.confirm("일정을 삭제합니다. 계속하겠습니까?\n(월별 시간 설정의 경우 기존에 설정한 일정을 삭제합니다)");
-			if(result)
-				this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
-				/**
-				 * TODO: delete night data whose original is deleted
-				 */
-			else
-				return;
-		}
+		if(this.deletedData.length > 0)
+			this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
+		
 		if(this.updatedData.length > 0) {
 			this.updatedData.forEach((data) => {
 				axios.patch(`api/${data.id}/`, data);
@@ -272,10 +296,8 @@ export default class CalendarStore {
 				}
 			});
 		}
+
 		if(this.addedData.length > 0) {
-			if(this.root.page.setCalendarMode) {
-				this.root.page.disableSetCalendarMode();
-			}
 			if(this.root.page.borrowTimeMode) {
 				let adminData = [];
 				this.addedData.forEach(data => {
@@ -289,6 +311,9 @@ export default class CalendarStore {
 				this.addedData = this.addedData.concat(adminData);
 				this.root.page.disableBorrowTimeMode();
 			}
+			else if(this.root.page.setCalendarMode)
+				this.root.page.disableSetCalendarMode();
+			
 			this.addedData.forEach(data => {
 				axios.post(`api/`, data);
 				if(!isSuper) {
