@@ -44,11 +44,13 @@ export default class CalendarStore {
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
 		const allClubData = res.data.filter(d => d.creator !== 'admin');
-		allClubData.forEach(d => this.clubData[d.club].push(d));
+		for(let club in this.clubData) {
+			this.clubData[club] = allClubData.filter(d => d.club === club);
+		}
 		
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
-				.concat(this.clubData);
+				.concat(this.clubData[this.root.page.userclub]);
 			this.data.forEach(e => {
 				if(e.creator === 'admin') {
 					e.color = '#777';
@@ -146,7 +148,6 @@ export default class CalendarStore {
 				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.getFullYear(), oldEvent.getMonth(), oldEvent.end.getDay(), 6, 0);
 				const event = this.data.find(e => e.start === start && e.end === end);
 				if(event) {
-					console.log(event);
 					inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
 					if(!inDay) {
 						start = start.getHours() < 6 ? start:new Date(start.getFullYear(), start.getMonth(), start.getDay(), 0, 0);
