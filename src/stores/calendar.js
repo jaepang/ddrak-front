@@ -8,6 +8,8 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 moment.locale('ko');
 
+const inDay = (start, end) => 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+
 export default class CalendarStore {
 	/* for display */
 	@observable data = [];
@@ -16,6 +18,7 @@ export default class CalendarStore {
 		'막무간애': [],
 		'모여락': []
 	};
+	@observable adminData = [];
 	/* for submit */
 	@observable updatedData = [];
 	@observable addedData = [];
@@ -44,9 +47,10 @@ export default class CalendarStore {
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
     	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
 		const allClubData = res.data.filter(d => d.creator !== 'admin');
-		for(let club in this.clubData) {
+		this.adminData = res.data.filter(d => d.creator === 'admin');
+		for(let club in this.clubData)
 			this.clubData[club] = allClubData.filter(d => d.club === club);
-		}
+		
 		
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
@@ -142,23 +146,13 @@ export default class CalendarStore {
 		else
 			data.push(tar);
 		if(oldEvent && !this.root.page.isSuper) {
-			let inDay = 6 <= oldEvent.start.getHours() && (6 <= oldEvent.end.getHours() || (oldEvent.end.getHours() === 0 && oldEvent.end.getMinutes() === 0));
-			if(!inDay) {
-				let start = oldEvent.start.getHours() < 6 ? oldEvent.start:new Date(oldEvent.start.getFullYear(), oldEvent.start.getMonth(), oldEvent.start.getDay(), 0, 0);
-				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.getFullYear(), oldEvent.getMonth(), oldEvent.end.getDay(), 6, 0);
-				const event = this.data.find(e => e.start === start && e.end === end);
-				if(event) {
-					inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-					if(!inDay) {
-						start = start.getHours() < 6 ? start:new Date(start.getFullYear(), start.getMonth(), start.getDay(), 0, 0);
-						end = end.getHours() < 6 ? end:new Date(end.getFullYear(), end.getMonth(), end.getDay(), 6, 0);
-						event.start = start;
-						event.end = end;
-						data.push(event);
-					}
-					else
-						this.deletedData.push(event);
-				}
+			if(!inDay(oldEvent.start, oldEvent.end)) {
+				let start = oldEvent.start.getHours() < 6 ? oldEvent.start:new Date(oldEvent.start.getFullYear(), oldEvent.start.getMonth(), oldEvent.start.getDate()+1, 0, 0);
+				let end = oldEvent.end.getHours() < 6 ? oldEvent.end:new Date(oldEvent.getFullYear(), oldEvent.getMonth(), oldEvent.end.getDate(), 6, 0);
+				const event = this.adminData.find(e => new Date(e.start).getTime() === start.getTime() && 
+													   new Date(e.end).getTime() === end.getTime());
+				if(event)
+					this.deletedData.push(event);
 			}
 		}
 	}
@@ -176,8 +170,7 @@ export default class CalendarStore {
 			const start = newEvent.start;
 			const end = newEvent.end;
 			if(!isSuper) {
-				const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-				if(!inDay)// night
+				if(!inDay(start, end))// night
 					window.alert('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다.');
 			}
 			const cur = this.setTimeSlot[oldEvent.groupId] || this.setTimeSlot[Number(oldEvent.id.slice(-1))];
@@ -223,8 +216,7 @@ export default class CalendarStore {
 		const start = event.start;
 		const end = event.end;
 		if(!isSuper) {
-			const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-			if(!inDay) { // night
+			if(!inDay(start, end)) { // night
 				const result = window.confirm('설정한 시간이 철야 시간대에 포함됩니다. 철야 시간대에 등록된 일정은 전체 시간표에 동아리명으로 노출됩니다. 계속하시겠습니까?');
 				if(!result) {
 					event.remove();
@@ -275,8 +267,7 @@ export default class CalendarStore {
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
-					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-					if(!inDay)
+					if(!inDay(start, end))
 						this.submitNightData(data);
 				}
 			});
@@ -295,9 +286,7 @@ export default class CalendarStore {
 					data.color = '#777';
 					adminData.push(copiedData);
 				});
-				console.log(adminData);
 				this.addedData = this.addedData.concat(adminData);
-				console.log(this.addedData);
 				this.root.page.disableBorrowTimeMode();
 			}
 			this.addedData.forEach(data => {
@@ -305,8 +294,7 @@ export default class CalendarStore {
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
-					const inDay = 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-					if(!inDay)
+					if(!inDay(start, end))
 						this.submitNightData(data);
 				}
 			});
@@ -320,8 +308,8 @@ export default class CalendarStore {
 	}
 
 	submitNightData = (data) => {
-		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDay(), 0, 0);
-		const end = data.end.getHours() < 6 ? data.end:new Date(data.end.getFullYear(), data.end.getMonth(), data.end.getDay(), 6, 0);
+		const start = data.start.getHours() < 6 ? data.start:new Date(data.start.getFullYear(), data.start.getMonth(), data.start.getDate()+1, 0, 0);
+		const end = data.end.getHours() < 6 ? data.end:new Date(data.end.getFullYear(), data.end.getMonth(), data.end.getDate(), 6, 0);
 		const clubColors = {
 			'악의꽃': '#79A3F4',
 			'막무간애': '#FF6B76',
@@ -505,7 +493,7 @@ export default class CalendarStore {
 	changeStartTimeSlot = time => {
 		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
 		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
-			if(this.setTimeSlot[this.setTimeIdx].endTime) {
+			if(!this.root.page.isSuper && this.setTimeSlot[this.setTimeIdx].endTime) {
 				const end = this.setTimeSlot[this.setTimeIdx].endTime;
 				const endH = typeof(end) === String ? Number(end.slice(0, 2)):end.getHours();
 				const endM = typeof(end) === String ? Number(end.slice(3)):end.getMinutes();
@@ -520,7 +508,6 @@ export default class CalendarStore {
 			this.displayTimeSlot();
 			return;
 		}
-		console.log(this.setTimeSlot[this.setTimeIdx].endTime);
 		alert('시작 시간이 끝 시간보다 나중입니다. 다시 설정해주세요.');
 		return;	
 	}
@@ -530,7 +517,7 @@ export default class CalendarStore {
 		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
 		const min = typeof(time) === String ? Number(time.slice(3)):time.getMinutes();
 		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
-			if(this.setTimeSlot[this.setTimeIdx].startTime) {
+			if(!this.root.page.isSuper && this.setTimeSlot[this.setTimeIdx].startTime) {
 				const start = this.setTimeSlot[this.setTimeIdx].startTime;
 				const startH = typeof(start) === String ? Number(start.slice(0, 2)):start.getHours();
 				const inDay = 6 <= startH && (6 <= hour || (hour === 0 && min === 0));
@@ -564,6 +551,9 @@ export default class CalendarStore {
 	@action
 	switchCalendar = () => {
 		this.clubCalendar = !this.clubCalendar;
+		this.addedData = [];
+		this.deletedData = [];
+		this.updatedData = [];
 		this.getData();
 	}
 }
