@@ -17,6 +17,7 @@ class SetTimeSlot extends Component {
 		const idx = this.calendar.setTimeIdx;
 		const resources = this.calendar.setTimeSlot;
 		const cur = resources[idx];
+		const idxOf = i => this.gridHeader.indexOf(i);
 		
 		return(
 			<React.Fragment>
@@ -59,42 +60,47 @@ class SetTimeSlot extends Component {
 								</div>
 							))}
 							{ this.gridHeader.map((e, index) => (
-								<div id={e} key={index}>
+								<div css={labelContainer} id={e} key={index}>
 									<input
 										type="radio"
 										css={radioInput}
-										id={'악의꽃' + String((this.gridHeader.indexOf(e)+1)%7)}
-										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '악의꽃'}
-										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '악의꽃')}
+										id={'악의꽃' + String((idxOf(e)+1)%7)}
+										checked={cur.days[(idxOf(e)+1)%7] === '악의꽃'}
+										onChange={() => this.calendar.changeDays((idxOf(e)+1)%7, '악의꽃')}
 									/>
 									<label
-										htmlFor={'악의꽃' + String((this.gridHeader.indexOf(e)+1)%7)}
+										css={radioLabel}
+										htmlFor={'악의꽃' + String((idxOf(e)+1)%7)}
 									>
-										악의꽃
+										<span>악</span>
 									</label>
 									<input
 										type="radio"
 										css={radioInput}
-										id={'막무간애' + String((this.gridHeader.indexOf(e)+1)%7)}
-										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '막무간애'}
-										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '막무간애')}
+										id={'막무간애' + String((idxOf(e)+1)%7)}
+										checked={cur.days[(idxOf(e)+1)%7] === '막무간애'}
+										onChange={() => this.calendar.changeDays((idxOf(e)+1)%7, '막무간애')}
 									/>
 									<label
-										htmlFor={'막무간애' + String((this.gridHeader.indexOf(e)+1)%7)}
+										css={radioLabel}
+										htmlFor={'막무간애' + String((idxOf(e)+1)%7)}
 									>
-										막무간애
+										<span>막</span>
 									</label>
 									<input
 										type="radio"
 										css={radioInput}
-										id={'모여락' + String((this.gridHeader.indexOf(e)+1)%7)}
-										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '모여락'}
-										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '모여락')}
+										id={'모여락' + String((idxOf(e)+1)%7)}
+										checked={cur.days[(idxOf(e)+1)%7] === '모여락'}
+										onChange={() => this.calendar.changeDays((idxOf(e)+1)%7, '모여락')}
 									/>
 									<label
-										htmlFor={'모여락' + String((this.gridHeader.indexOf(e)+1)%7)}
+										css={radioLabel}
+										className={idxOf(e)===0||idxOf(e)===6 ? 
+											idxOf(e)===0?'border-left':'border-right':'null'}
+										htmlFor={'모여락' + String((idxOf(e)+1)%7)}
 									>
-										모여락
+										<span>모</span>
 									</label>
 								</div>
 							))}
@@ -192,30 +198,61 @@ const timeContainer = css `
 `;
 const timePicker = css `
 	display: inline-block;
-	border-radius: 15px;
 	width: 44%;
 	margin-bottom: 10px;
 	input {
+		border-radius: 15px;
 		height: 35px;
 	}
 `;
 const gridContainer = css `
 	display: grid;
-	margin: 0 auto;
-	width: 90%;
-	grid-template-rows: repeat(2, 1fr);
+	background-color: #FFFFFF;
+	margin: 0.5rem auto;
+	border: 1px solid #A4A7B5;
+	border-radius: 15px;
+	width: 92.5%;
+	height: 20vh;
+	grid-template-rows: 1fr 3fr;
 	grid-template-columns: repeat(7, 1fr);
+	place-items: stretch;
 `;
 const gridHeader = css `
-	display: inline;
-	text-align: center;
-	border: 1px solid black;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.5rem;
+	border-bottom: 1px solid #A4A7B5;
+	color: #3C4043;
+`;
+const labelContainer = css `
+	display: grid;
+	grid-template-rows: 1fr 1fr 1fr;
+	grid-template-columns: 1fr;
+	place-items: stretch;
+	.border-left {
+		border-bottom-left-radius: 15px;
+	}
+	.border-right {
+		border-bottom-right-radius: 15px;
+	}
 `;
 const radioInput = css `
-	/*display: none;*/
+	display: none;
+	&:checked + label {
+		color: #3C4043;
+	}
 `;
 const radioLabel = css `
-
+	display: flex;
+	cursor: pointer;
+	justify-content: center;
+	padding: 0.5rem;
+	color: #CCC;
+	&:hover {
+		color: #3C4043;
+		background-color: #FAFAFA;
+	}
 `;
 const buttonStyle = css `
 	display: inline-block;

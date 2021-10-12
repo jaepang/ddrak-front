@@ -517,7 +517,6 @@ export default class CalendarStore {
 				{club: '막무간애', color: '#FF6B76', days: getAllIndex(days, '막무간애')},
 				{club: '모여락', color: '#CD9CF4', days: getAllIndex(days, '모여락')}
 			]
-			console.log(days);
 			
 			clubDays.forEach(c => {
 				event = {
