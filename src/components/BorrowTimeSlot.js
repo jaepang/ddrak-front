@@ -1,4 +1,4 @@
-/* @jsx jsx */
+/** @jsx jsx */
 import { jsx, css } from '@emotion/core';
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';

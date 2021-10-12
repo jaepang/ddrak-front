@@ -1,8 +1,8 @@
-/* @jsx jsx */
+/** @jsx jsx */
 import { jsx, css } from '@emotion/core';
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
-import { Input, ButtonIcon, Button, WeekDayPicker, TimePicker, DateTimePicker } from 'react-rainbow-components';
+import { Input, ButtonIcon, Button, TimePicker, DateTimePicker } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
@@ -12,14 +12,11 @@ class SetTimeSlot extends Component {
 	calendar = this.props.calendar;
 	page = this.calendar.root.page;
 	isFullAdmin = this.page.username === 'admin';
-	defaultDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+	gridHeader = ['월', '화', '수', '목', '금', '토', '일'];
 	render() {
 		const idx = this.calendar.setTimeIdx;
 		const resources = this.calendar.setTimeSlot;
 		const cur = resources[idx];
-		const lfdmAvailable = this.isFullAdmin ? this.defaultDays.filter(el => !(cur.mmgeDays.includes(el) || cur.myrDays.includes(el))) : null;
-		const mmgeAvailable = this.isFullAdmin ? this.defaultDays.filter(el => !(cur.lfdmDays.includes(el) || cur.myrDays.includes(el))) : null;
-		const myrAvailable = this.isFullAdmin ? this.defaultDays.filter(el => !(cur.lfdmDays.includes(el) || cur.mmgeDays.includes(el))) : null;
 		
 		return(
 			<React.Fragment>
@@ -55,33 +52,53 @@ class SetTimeSlot extends Component {
 								onChange={t => this.calendar.changeEndTimeSlot(t)}
 							/>
 						</div>
-						<WeekDayPicker
-							multiple
-							label="악의꽃"
-							labelAlignment="left"
-							css={weekdayPicker}
-							value={cur.lfdmDays}
-							availableDates={lfdmAvailable}
-							onChange={days => this.calendar.changeDays('lfdmDays', days)}
-						/>
-						<WeekDayPicker
-							multiple
-							label="막무간애"
-							labelAlignment="left"
-							css={weekdayPicker}
-							value={cur.mmgeDays}
-							availableDates={mmgeAvailable}
-							onChange={days => this.calendar.changeDays('mmgeDays', days)}
-						/>
-						<WeekDayPicker
-							multiple
-							label="모여락"
-							labelAlignment="left"
-							css={weekdayPicker}
-							value={cur.myrDays}
-							availableDates={myrAvailable}
-							onChange={days => this.calendar.changeDays('myrDays', days)}
-						/>
+						<div css={gridContainer}>
+							{this.gridHeader.map((e, index) => (
+								<div css={gridHeader} key={index}>
+									{e.toString()}
+								</div>
+							))}
+							{ this.gridHeader.map((e, index) => (
+								<div id={e} key={index}>
+									<input
+										type="radio"
+										css={radioInput}
+										id={'악의꽃' + String((this.gridHeader.indexOf(e)+1)%7)}
+										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '악의꽃'}
+										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '악의꽃')}
+									/>
+									<label
+										htmlFor={'악의꽃' + String((this.gridHeader.indexOf(e)+1)%7)}
+									>
+										악의꽃
+									</label>
+									<input
+										type="radio"
+										css={radioInput}
+										id={'막무간애' + String((this.gridHeader.indexOf(e)+1)%7)}
+										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '막무간애'}
+										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '막무간애')}
+									/>
+									<label
+										htmlFor={'막무간애' + String((this.gridHeader.indexOf(e)+1)%7)}
+									>
+										막무간애
+									</label>
+									<input
+										type="radio"
+										css={radioInput}
+										id={'모여락' + String((this.gridHeader.indexOf(e)+1)%7)}
+										checked={cur.days[(this.gridHeader.indexOf(e)+1)%7] === '모여락'}
+										onChange={() => this.calendar.changeDays((this.gridHeader.indexOf(e)+1)%7, '모여락')}
+									/>
+									<label
+										htmlFor={'모여락' + String((this.gridHeader.indexOf(e)+1)%7)}
+									>
+										모여락
+									</label>
+								</div>
+							))}
+						</div>
 						<div css={container}>
 							<Button
 								label="적용"
@@ -118,7 +135,7 @@ class SetTimeSlot extends Component {
 								label="제목"
 								placeholder="새로운 일정"
 								type="text"
-								css={css`width: 100%;`}
+								css={css `width: 100%;`}
 								value={cur.title}
 								className="rainbow-p-around_medium"
 								onChange={title => this.calendar.changeTitle(title)}
@@ -182,20 +199,23 @@ const timePicker = css `
 		height: 35px;
 	}
 `;
-const weekdayPicker = css `
-	margin-bottom: 1.5rem;
-	display: flex;
-	justify-content: space-evenly;
-	legend {
-		margin-left: 0;
-		margin-bottom: 5px;
-		text-align: left;
-	}
-	label {
-		width: 28px;
-		font-size: 0.9rem;
-		border-radius: 20px;
-	}
+const gridContainer = css `
+	display: grid;
+	margin: 0 auto;
+	width: 90%;
+	grid-template-rows: repeat(2, 1fr);
+	grid-template-columns: repeat(7, 1fr);
+`;
+const gridHeader = css `
+	display: inline;
+	text-align: center;
+	border: 1px solid black;
+`;
+const radioInput = css `
+	/*display: none;*/
+`;
+const radioLabel = css `
+
 `;
 const buttonStyle = css `
 	display: inline-block;

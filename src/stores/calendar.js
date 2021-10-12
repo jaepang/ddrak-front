@@ -1,6 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
-import { getFirstDay, dayParser } from '../utils/dateCalculator';
+import { getFirstDay } from '../utils/dateCalculator';
 import moment from 'moment';
 import 'moment/locale/ko';
 
@@ -16,6 +16,17 @@ const nightTime = (date, isStart) => {
 		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0);
 }
 const isBorrowed = (creator, club) => creator !== 'admin' && creator.slice(0, -5) !== club;
+const getAllIndex = (list, value) => {
+	let indexes = [];
+	let i = -1;
+	while(true) {
+		i = list.indexOf(value, i+1);
+		if(i === -1)
+			break;
+		indexes.push(i);
+	}
+	return indexes;
+}
 
 export default class CalendarStore {
 	/* for display */
@@ -439,9 +450,9 @@ export default class CalendarStore {
 			this.data = [];
 			this.setTimeSlot[0] = {
 				...this.setTimeSlot[0],
-				lfdmDays: [],
-				mmgeDays: [],
-				myrDays: []
+
+				/* mon tue wed thu fri sat sun */
+				days: ['null', 'null', 'null', 'null', 'null', 'null', 'null']
 			};
 		}
 		else {
@@ -477,13 +488,8 @@ export default class CalendarStore {
 	@action
 	displayTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
-		const { startTime, endTime, lfdmDays, mmgeDays, myrDays, title } = cur;
+		const { startTime, endTime, title, days } = cur;
 		const isSuper = this.root.page.isSuper;
-		const clubDays = [
-			{club: '악의꽃', color: '#79A3F4', days: lfdmDays},
-			{club: '막무간애', color: '#FF6B76', days: mmgeDays},
-			{club: '모여락', color: '#CD9CF4', days: myrDays}
-		];
 
 		if(!startTime || !endTime)
 			return;
@@ -505,12 +511,15 @@ export default class CalendarStore {
 		let event;
 		if(isSuper) {
 			let time = this.currentDate;
-			const filteredClubs = clubDays.filter(c => c.days.length > 0);
-			for(let c of filteredClubs) {
-				let days = [];
-				c.days.map(d => days.push(dayParser[d]));
-				time = getFirstDay(days[0], this.currentDate);
 
+			const clubDays = [
+				{club: '악의꽃', color: '#79A3F4', days: getAllIndex(days, '악의꽃')},
+				{club: '막무간애', color: '#FF6B76', days: getAllIndex(days, '막무간애')},
+				{club: '모여락', color: '#CD9CF4', days: getAllIndex(days, '모여락')}
+			]
+			console.log(days);
+			
+			clubDays.forEach(c => {
 				event = {
 					startTime: startTime,
 					endTime: endTime,
@@ -523,13 +532,13 @@ export default class CalendarStore {
 					club: c.club,
 					start: time,
 					end: time,
-					daysOfWeek: days,
+					daysOfWeek: c.days,
 					color: c.color
 				}
 
 				this.calendarApi.addEvent(event);
 				this.addedData.push(event);
-			}
+			});
 		}
 		else {
 			event = {
@@ -562,9 +571,7 @@ export default class CalendarStore {
 			if(this.root.page.username === 'admin') {
 				this.setTimeSlot[idx] = {
 					...this.setTimeSlot[idx],
-					lfdmDays: [],
-					mmgeDays: [],
-					myrDays: []
+					days: ['null', 'null', 'null', 'null', 'null', 'null', 'null']
 				};
 			}
 			else {
@@ -582,7 +589,8 @@ export default class CalendarStore {
 
 	@action
 	changeStartTimeSlot = time => {
-		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
+		console.log(time, typeof(time));
+		const hour = typeof(time) === 'string' ? Number(time.slice(0, 2)):time.getHours();
 		if(!this.setTimeSlot[this.setTimeIdx].endTime || this.setTimeSlot[this.setTimeIdx].endTime > time) {
 			if(!this.root.page.isSuper && this.setTimeSlot[this.setTimeIdx].endTime) {
 				const end = this.setTimeSlot[this.setTimeIdx].endTime;
@@ -605,8 +613,8 @@ export default class CalendarStore {
 
 	@action
 	changeEndTimeSlot = time => { 
-		const hour = typeof(time) === String ? Number(time.slice(0, 2)):time.getHours();
-		const min = typeof(time) === String ? Number(time.slice(3)):time.getMinutes();
+		const hour = typeof(time) === 'string' ? Number(time.slice(0, 2)):time.getHours();
+		const min = typeof(time) === 'string' ? Number(time.slice(3)):time.getMinutes();
 		if(!this.setTimeSlot[this.setTimeIdx].startTime || this.setTimeSlot[this.setTimeIdx].startTime < time) {
 			if(!this.root.page.isSuper && this.setTimeSlot[this.setTimeIdx].startTime) {
 				const start = this.setTimeSlot[this.setTimeIdx].startTime;
@@ -628,8 +636,8 @@ export default class CalendarStore {
 	}
 
 	@action
-	changeDays = (id, days) =>  {
-		this.setTimeSlot[this.setTimeIdx][id] = days;
+	changeDays = (day, club) =>  {
+		this.setTimeSlot[this.setTimeIdx].days[day] = club;
 		this.displayTimeSlot();
 	}
 
