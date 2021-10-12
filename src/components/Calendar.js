@@ -148,7 +148,7 @@ const globalStyle = css `
 	}
 	.fc-timegrid-slot-label-cushion p {
 		margin: 0 auto;
-		font-size: 0.6rem;
+		font-size: 0.9rem;
 		letter-spacing: -1px;
 	}
 	.fc-event-main-frame {
@@ -158,13 +158,13 @@ const globalStyle = css `
 		border-radius: 15px;
 		p {
 			margin: 0.7rem 0 0.3rem 0;
-			font-weight: 300;
-			font-size: 0.95rem;
+			font-weight: 400;
+			font-size: 0.8rem;
 		}
 	}
 	.fc-event-title {
 		margin-top: 0.1rem;
-		font-weight: 400;
+		font-weight: 500;
 		font-size: 1rem;
 	}
 	/* overlapped event */
@@ -177,7 +177,6 @@ const globalStyle = css `
 		}
 		p {
 			font-size: 0.5rem !important;
-			font-weight: 400;
 		}
 	}
 `;

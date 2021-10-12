@@ -80,7 +80,7 @@ class UserMenu extends Component {
 }
 
 const style = css `
-	margin: 10% auto 15% auto;
+	margin: 7% auto 12% auto;
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(30%, auto));
 	column-gap: 3%;
