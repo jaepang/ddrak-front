@@ -148,7 +148,7 @@ const globalStyle = css `
 	}
 	.fc-timegrid-slot-label-cushion p {
 		margin: 0 auto;
-		font-size: 0.9rem;
+		font-size: 0.6rem;
 		letter-spacing: -1px;
 	}
 	.fc-event-main-frame {
@@ -165,7 +165,20 @@ const globalStyle = css `
 	.fc-event-title {
 		margin-top: 0.1rem;
 		font-weight: 400;
-		font-size: 1.2rem;
+		font-size: 1rem;
+	}
+	/* overlapped event */
+	.fc-timegrid-event-harness-inset {
+		.fc-event-main-frame {
+			padding-left: 0.4rem !important;
+		}
+		.fc-event-title {
+			font-size: 0.9rem !important;
+		}
+		p {
+			font-size: 0.5rem !important;
+			font-weight: 400;
+		}
 	}
 `;
 const cardStyle = css `
