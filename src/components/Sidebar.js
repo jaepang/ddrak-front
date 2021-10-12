@@ -57,7 +57,7 @@ const style = css `
 const cardStyle = css `
 	width: 100%;
 	margin: 0;
-	margin-bottom: 2rem;
+	margin-bottom: 0.5rem;
 	border: none;
 	border-radius: 15px;
 	box-shadow: 0px 0px 0px;

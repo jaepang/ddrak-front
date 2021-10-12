@@ -15,23 +15,16 @@ class Header extends Component {
 		const cur = calendar.curDateObj;
 		const { bfDate, aftDate, yearChange, title } = calcMonth(cur);
 		const loggedIn = calendar.root.page.loggedIn;
-		const isFullAdmin = calendar.root.page.isSuper;
+		const isSuper = calendar.root.page.isSuper;
 		return(
 			<div css={style}>
 				<div css={container}>
-					{ !yearChange && <h1>{cur.year}년 {title}월</h1> }
-					{ yearChange && 
-						<h1>
-							{bfDate.getFullYear()}년 {bfDate.getMonth()+1}월-
-							{aftDate.getFullYear()}년 {aftDate.getMonth()+1}월
-						</h1> 
-					}
 					<div className='buttons'>
 						<ButtonIcon
 							size="medium" 
-							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
+							icon={<FontAwesomeIcon icon={faChevronLeft} />} 
 							onClick={calendar.moveLeft}
-							disabled={calendar.root.page.setCalendarMode && isFullAdmin}
+							disabled={calendar.root.page.setCalendarMode && isSuper}
 							css={buttonLeftStyle}
 						/>
 						<Button
@@ -40,35 +33,42 @@ class Header extends Component {
 							variant="border-filled"
 							onClick={calendar.moveToday}
 							css={buttonStyle}
-							disabled={calendar.root.page.setCalendarMode && isFullAdmin}
+							disabled={calendar.root.page.setCalendarMode && isSuper}
 						/>
 						<ButtonIcon
 							size="medium" 
-							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
+							icon={<FontAwesomeIcon icon={faChevronRight} />} 
 							onClick={calendar.moveRight}
-							disabled={calendar.root.page.setCalendarMode && isFullAdmin}
+							disabled={calendar.root.page.setCalendarMode && isSuper}
 							css={buttonRightStyle}
 						/>
 					</div>
+					{ !yearChange && <h1>{cur.year}년 {title}월</h1> }
+					{ yearChange && 
+						<h1>
+							{bfDate.getFullYear()}년 {bfDate.getMonth()+1}월-
+							{aftDate.getFullYear()}년 {aftDate.getMonth()+1}월
+						</h1> 
+					}
 				</div>
 				<div css={containerRight}>
-					{ (loggedIn && !isFullAdmin) && 
+					{ (loggedIn && !isSuper) && 
 						<div css={changeCalendarButtons}>
 							<Button
 								shaded
-								label="전체 시간표"
+								label="전체"
 								variant="border-filled"
 								onClick={calendar.switchCalendar}
 								css={buttonLeftStyle}
-								disabled={!calendar.clubCalendar}
+								disabled={!calendar.clubCalendar || calendar.root.page.setCalendarMode}
 							/>
 							<Button
 								shaded
-								label="동아리 시간표"
+								label="동아리"
 								variant="border-filled"
 								onClick={calendar.switchCalendar}
 								css={buttonRightStyle}
-								disabled={calendar.clubCalendar}
+								disabled={calendar.clubCalendar || calendar.root.page.setCalendarMode}
 							/>
 						</div>
 					}
@@ -96,7 +96,7 @@ class Header extends Component {
 }
 
 const style = css `
-	padding: 1.5rem;
+	padding: 1.5rem 1rem;
 	display: flex;
     justify-content: space-between;
 	h1 {
@@ -111,15 +111,13 @@ const container = css `
 	width: 25rem;
 	height: 100%;
 	h1 {
-		position: absolute;
-		top: 50%;
-		left: 0;
+		display: inline;
 		transform: translateY(-50%);
 	}
 	.buttons {
-		position: absolute;
-		top: 55%;
-		left: 12em;
+		display: inline;
+		vertical-align: top;
+		margin-right: 1rem;
 		transform: translateY(-50%);
 	}
 `;
@@ -127,7 +125,6 @@ const containerRight = css `
 	margin: auto 0;
 	position: relative;
 	float: right;
-	width: 22rem;
 	height: 100%;
 `;
 const buttonLeftStyle = css `
@@ -138,7 +135,7 @@ const buttonLeftStyle = css `
 	border-bottom-right-radius: 0;
 	margin-right: -1px;
 	height: 38px;
-	&:hover {
+	&:hover:enabled {
 		background-color: #fafafa;
 		color: #3C4043;
 	}
@@ -152,7 +149,7 @@ const buttonRightStyle = css `
 	border-bottom-left-radius: 0;
 	margin-left: -1px;
 	height: 38px;
-	&:hover {
+	&:hover:enabled {
 		background-color: #fafafa;
 		color: #3C4043;
 	}
@@ -165,7 +162,7 @@ const buttonStyle = css `
 	border-radius: 0;
 	height: 38px;
 	box-shadow: 0 0 0 0;
-	&:hover {
+	&:hover:enabled {
 		background-color: #fafafa;
 		color: #3C4043;
 	}
@@ -173,6 +170,7 @@ const buttonStyle = css `
 
 const changeCalendarButtons = css `
 	margin: auto 0;
+	margin-right: 1rem;
 	display: inline-block;
 `;
 const singleButtonStyle = css `
@@ -185,13 +183,10 @@ const singleButtonStyle = css `
 	border-radius: 10px;
 	height: 38px;
 	box-shadow: 0 0 0 0;
-	&:hover {
+	&:hover:enabled {
 		background-color: #fafafa;
 		color: #3C4043;
 	}
-`;
-const iconStyle = css `
-	color: #3C4043;
 `;
 
 export default Header;
