@@ -49,3 +49,20 @@ export const dayParser = {
 	friday: 5,
 	saturday: 6
 };
+export const inDay = (start, end) => 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
+
+export const nightTime = (date, isStart) => {
+	if(isStart)
+		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate()+1, 0, 0);
+	else
+		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0);
+}
+
+export const isBorrowed = (creator, club) => creator !== 'admin' && creator.slice(0, -5) !== club;
+
+export const isInBoundary = (date, curDate) => {
+	const day = curDate.getDay();
+	const mon = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate()-day+1, 5, 59);
+	const sun = new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate()-day+8, 6, 1);
+	return (mon < date && date < sun) || mon.getTime() === date.getTime() || sun.getTime() === date.getTime();
+}

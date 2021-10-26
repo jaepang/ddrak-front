@@ -1,6 +1,6 @@
 import { makeObservable, observable, action, flow } from 'mobx';
 import axios from 'axios';
-import { getFirstDay } from '../utils/dateCalculator';
+import { getFirstDay, inDay, nightTime, isBorrowed, isInBoundary } from '../utils/dateCalculator';
 import moment from 'moment';
 import 'moment/locale/ko';
 
@@ -8,14 +8,6 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 moment.locale('ko');
 
-const inDay = (start, end) => 6 <= start.getHours() && (6 <= end.getHours() || (end.getHours() === 0 && end.getMinutes() === 0));
-const nightTime = (date, isStart) => {
-	if(isStart)
-		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate()+1, 0, 0);
-	else
-		return date.getHours() < 6 ? date:new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0);
-}
-const isBorrowed = (creator, club) => creator !== 'admin' && creator.slice(0, -5) !== club;
 const getAllIndex = (list, value) => {
 	let indexes = [];
 	let i = -1;
@@ -37,7 +29,9 @@ export default class CalendarStore {
 		'모여락': []
 	};
 	@observable adminData = [];
-	@observable borrowPaddingBuffer = [];
+	@observable borrowPaddingBuffer = new Set();
+	@observable borrowPaddingOriginalBuffer = new Set();
+	@observable borrowedData = [];
 	/* for submit */
 	@observable updatedData = [];
 	@observable addedData = [];
@@ -69,6 +63,7 @@ export default class CalendarStore {
 		this.adminData = res.data.filter(d => d.creator === 'admin');
 		for(let club in this.clubData)
 			this.clubData[club] = allClubData.filter(d => d.club === club);
+		this.borrowedData = res.data.filter(d => isBorrowed(d.creator, d.club));
 		
 		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
 			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
@@ -97,8 +92,13 @@ export default class CalendarStore {
 
 	@action
 	emptyBuffer = () => {
-		this.borrowPaddingBuffer.forEach(i => i.remove());
-		this.borrowPaddingBuffer = [];
+		if(this.clubCalendar)
+			this.borrowPaddingBuffer.forEach(e => this.calendarApi.addEvent(e));
+		else {
+			this.borrowPaddingBuffer.forEach(e => e.remove());
+			this.borrowPaddingOriginalBuffer.clear();
+		}
+		this.borrowPaddingBuffer.clear();
 	}
 
 	@action
@@ -107,54 +107,74 @@ export default class CalendarStore {
 			return;
 
 		const events = this.calendarApi.getEvents();
-		events.forEach(e => {
-			const creator = e.extendedProps.creator;
+		this.borrowedData.forEach(d => {
+			let fromCalendar = true;
+			let e = events.find(api => Number(api.id) === d.id);
+			if(!e) {
+				fromCalendar = false;
+				if(!isInBoundary(new Date(d.start), this.currentDate)) {
+					this.borrowPaddingOriginalBuffer.forEach(e => this.calendarApi.addEvent(e));
+					this.borrowPaddingOriginalBuffer.clear();
+					return;
+				}
+				e = {
+					title: d.title,
+					start: new Date(d.start),
+					end: new Date(d.end),
+					extendedProps: {
+						creator: d.creator,
+						club: d.club
+					}
+				};
+			}
 			const club = e.extendedProps.club;
-			console.log(creator, club, e);
-			if(isBorrowed(creator, club) && club === this.root.page.userclub) {
+			let newEvent = {
+				color: '#777',
+				extendedProps: {
+					creator: 'admin',
+					club: club
+				}
+			};
+			if(club === this.root.page.userclub) {
 				events.filter(d => d !== e).forEach(event => {
 					if(event.start <= e.start && e.start <= event.end && event.start.getTime() !== e.start.getTime()) {
 						if(event.start <= e.end && e.end <= event.end) {
-							this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+							newEvent = {
+								...newEvent,
 								title: event.title,
 								start: e.end,
 								end: event.end,
-								color: '#777',
-								extendedProps: {
-									creator: 'admin',
-									club: club
-								}
-							}));
+							}
+							this.borrowPaddingBuffer.add(this.calendarApi.addEvent(newEvent));
 						}
-						this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+						newEvent = {
+							...newEvent,
 							title: event.title,
 							start: event.start,
 							end: e.start,
-							color: '#777',
-							extendedProps: {
-								creator: 'admin',
-								club: club
-							}
-						}));
+						}
+						this.borrowPaddingBuffer.add(this.calendarApi.addEvent(newEvent))
+						this.borrowPaddingOriginalBuffer.add(event);
 						event.remove();
 					}
 					else if(event.start <= e.end && e.end <= event.end && event.end.getTime() !== e.end.getTime()) {
-						this.borrowPaddingBuffer.push(this.calendarApi.addEvent({
+						newEvent = {
+							...newEvent,
 							title: event.title,
 							start: e.end,
 							end: event.end,
-							color: '#777',
-							extendedProps: {
-								creator: 'admin',
-								club: club
-							}
-						}));
+						}
+						this.borrowPaddingBuffer.add(this.calendarApi.addEvent(newEvent));
+						this.borrowPaddingOriginalBuffer.add(event);
 						event.remove();
 					}
-					else if(event.start.getTime() === e.start.getTime() && event.end.getTime() === e.end.getTime())
+					else if(event.start.getTime() === e.start.getTime() && event.end.getTime() === e.end.getTime()) {
+						this.borrowPaddingOriginalBuffer.add(event);
 						event.remove();
+					}
 				});
-				e.remove();
+				if(fromCalendar)
+					e.remove();
 			}
 		})
 	}
@@ -164,6 +184,9 @@ export default class CalendarStore {
 		this.curDateObj.year = this.currentDate.getFullYear();
 		this.curDateObj.month = this.currentDate.getMonth()+1;
 		this.curDateObj.date = this.currentDate.getDate();
+		this.borrowPaddingBuffer.forEach(e => e.remove());
+		this.borrowPaddingOriginalBuffer.forEach(e => e.remove());
+		this.handleBorrowedEvents();
 	}
 
 	@action
