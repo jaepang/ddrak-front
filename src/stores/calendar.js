@@ -58,7 +58,7 @@ export default class CalendarStore {
 		const cur = this.currentDate;
 		const from = new Date(cur.getFullYear(), cur.getMonth()-1, 1).toISOString();
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
-    	const res = yield axios.get(`/api/?start__gte=${from}&start__lt=${to}`);
+    	const res = yield axios.get(`${process.env.REACT_APP_HOST_IP_ADDRESS}/api/?start__gte=${from}&start__lt=${to}`);
 		const allClubData = res.data.filter(d => d.creator !== 'admin');
 		this.adminData = res.data.filter(d => d.creator === 'admin');
 		for(let club in this.clubData)
@@ -390,7 +390,7 @@ export default class CalendarStore {
 	submitData = () => {
 		const isSuper = this.root.page.isSuper;
 		if(this.deletedData.length > 0)
-			this.deletedData.map(data => axios.delete(`api/${data.id}/`, data));
+			this.deletedData.map(data => axios.delete(`${process.env.REACT_APP_HOST_IP_ADDRESS}/api/${data.id}/`, data));
 		
 		if(this.updatedData.length > 0) {
 			this.updatedData.forEach((data) => {
@@ -415,7 +415,7 @@ export default class CalendarStore {
 				this.root.page.disableSetCalendarMode();
 			
 			this.addedData.forEach(data => {
-				axios.post(`api/`, data);
+				axios.post(`${process.env.REACT_APP_HOST_IP_ADDRESS}/api/`, data);
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
@@ -450,7 +450,7 @@ export default class CalendarStore {
 			club: this.root.page.userclub,
 			color: clubColors[this.root.page.userclub]
 		}
-		axios.post(`api/`, event);
+		axios.post(`${process.env.REACT_APP_HOST_IP_ADDRESS}/api/`, event);
 	}
 
 	@action
