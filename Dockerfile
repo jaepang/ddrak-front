@@ -4,6 +4,6 @@ WORKDIR /ddrak-front
 COPY . /ddrak-front
 ARG API_URL
 ENV REACT_APP_HOST_IP_ADDRESS $API_URL
-RUN export NODE_OPTIONS=--max_old_space_size=4096
+RUN export NODE_OPTIONS=--max_old_space_size=6666
 RUN yarn
 RUN yarn build
