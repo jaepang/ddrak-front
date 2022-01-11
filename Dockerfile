@@ -6,4 +6,4 @@ ARG API_URL
 ENV REACT_APP_HOST_IP_ADDRESS $API_URL
 ENV GENERATE_SOURCEMAP false
 RUN yarn
-RUN yarn build
+RUN NODE_OPTIONS="--max-old-space-size=8192" yarn build
