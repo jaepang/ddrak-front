@@ -50,8 +50,9 @@ export default class PageStore {
 				this.loggedIn = true;
 				this.username = this.auth.username;
 				this.usernameDisplay = this.username.replace('admin',' 관리자');
-				this.isAdmin = this.username !== this.usernameDisplay;
-				this.setUsertype(this.username);
+				this.isAdmin = res.data.is_staff;
+				this.isSuper = res.data.is_superuser;
+				this.setUsertype();
 				this.setUserclub(this.username, this.usertype);
 				this.auth.username = '';
 				this.auth.password = '';
@@ -88,7 +89,7 @@ export default class PageStore {
 			this.usernameDisplay = this.username.replace('admin', '관리자');
 			this.isAdmin = res.data.is_staff;
 			this.isSuper = res.data.is_superuser;
-			this.setUsertype(this.username);
+			this.setUsertype();
 			this.setUserclub(this.username, this.usertype);
 		} catch(error) {
 			if(error.response.status === 401) {
@@ -120,13 +121,11 @@ export default class PageStore {
 	}
 
 	@action
-	setUsertype = (username) => {
-		if(this.isAdmin) {
-			if(username === 'admin')
-				this.usertype = 'admin';
-			else
-				this.usertype = 'clubAdmin';
-		}
+	setUsertype = () => {
+		if(this.isSuper)
+			this.usertype = 'admin';
+		else if(this.isAdmin)
+			this.usertype = 'clubAdmin';
 		else
 			this.usertype = 'club';
 	}
