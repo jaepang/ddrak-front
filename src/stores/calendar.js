@@ -415,7 +415,7 @@ export default class CalendarStore {
 				this.root.page.disableSetCalendarMode();
 			
 			this.addedData.forEach(data => {
-				axios.post(`api`, data);
+				axios.post(`api/`, data);
 				if(!isSuper) {
 					const start = data.start;
 					const end = data.end;
@@ -450,7 +450,7 @@ export default class CalendarStore {
 			club: this.root.page.userclub,
 			color: clubColors[this.root.page.userclub]
 		}
-		axios.post(`api`, event);
+		axios.post(`api/`, event);
 	}
 
 	@action
