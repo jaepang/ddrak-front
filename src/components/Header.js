@@ -1,101 +1,88 @@
-import { Component } from 'react';
-import { observer, inject } from 'mobx-react';
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { useStore } from '../stores';
 import { ButtonIcon, Button } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import { calcMonth } from '../utils/dateCalculator';
+import styled from '@emotion/styled';
 
-@inject('calendar')
-@observer
-class Header extends Component {
-	render() {
-		const { calendar } = this.props;
-		const cur = calendar.curDateObj;
-		const { bfDate, aftDate, yearChange, title } = calcMonth(cur);
-		const loggedIn = calendar.root.page.loggedIn;
-		const isSuper = calendar.root.page.isSuper;
-		return(
-			<div css={style}>
-				<div css={container}>
-					<div className='buttons'>
-						<ButtonIcon
-							size="medium" 
-							icon={<FontAwesomeIcon icon={faChevronLeft} />} 
-							onClick={calendar.moveLeft}
-							disabled={calendar.root.page.setCalendarMode && isSuper}
-							css={buttonLeftStyle}
-						/>
-						<Button
-							shaded
-							label="오늘"
-							variant="border-filled"
-							onClick={calendar.moveToday}
-							css={buttonStyle}
-							disabled={calendar.root.page.setCalendarMode && isSuper}
-						/>
-						<ButtonIcon
-							size="medium" 
-							icon={<FontAwesomeIcon icon={faChevronRight} />} 
-							onClick={calendar.moveRight}
-							disabled={calendar.root.page.setCalendarMode && isSuper}
-							css={buttonRightStyle}
-						/>
-					</div>
-					{ !yearChange && <h1>{cur.year}년 {title}월</h1> }
-					{ yearChange && 
-						<h1>
-							{bfDate.getFullYear()}년 {bfDate.getMonth()+1}월-
-							{aftDate.getFullYear()}년 {aftDate.getMonth()+1}월
-						</h1> 
-					}
-				</div>
-				<div css={containerRight}>
-					{ (loggedIn && !isSuper) && 
-						<div css={changeCalendarButtons}>
-							<Button
-								shaded
-								label="전체"
-								variant="border-filled"
-								onClick={calendar.switchCalendar}
-								css={buttonLeftStyle}
-								disabled={!calendar.clubCalendar || calendar.root.page.setCalendarMode}
-							/>
-							<Button
-								shaded
-								label="동아리"
-								variant="border-filled"
-								onClick={calendar.switchCalendar}
-								css={buttonRightStyle}
-								disabled={calendar.clubCalendar || calendar.root.page.setCalendarMode}
-							/>
-						</div>
-					}
-					{ loggedIn ?
-						<Button
-							shaded
-							label="로그아웃"
-							variant="border-filled"
-							onClick={calendar.root.page.handleLogout}
-							css={singleButtonStyle}
-						/>
-					:
-						<Button
-							shaded
-							label="로그인"
-							variant="border-filled"
-							onClick={calendar.root.page.openLoginModal}
-							css={singleButtonStyle}
-						/>
-					}
-				</div>
-			</div>
-		)
-	}
-}
+const Header = observer(() => {
+	const { calendar, page } = useStore();
+	const moveLeft = () => calendar.moveLeft();
+	const moveRight = () => calendar.moveRight();
+	const moveToday = () => calendar.moveToday();
+	const switchCalendar = () => calendar.switchCalendar();
 
-const style = css `
+	const handleLogout = () => page.handleLogout();
+	const openLoginModal = () => page.openLoginModal();
+
+	return (
+		<MainContainer>
+			<LeftContainer>
+				<Buttons>
+					<LeftButtonIcon
+						size="medium" 
+						icon={<FontAwesomeIcon icon={faChevronLeft} />} 
+						onClick={moveLeft}
+						disabled={page.setCalendarMode && page.isSuper}
+					/>
+					<StyledButton
+						shaded
+						label="오늘"
+						variant="border-filled"
+						onClick={moveToday}
+						disabled={page.setCalendarMode && page.isSuper}
+					/>
+					<RightButtonIcon
+						size="medium" 
+						icon={<FontAwesomeIcon icon={faChevronRight} />} 
+						onClick={moveRight}
+						disabled={page.setCalendarMode && page.isSuper}
+					/>
+				</Buttons>
+				<h1>{calendar.headerDate}</h1>
+			</LeftContainer>
+			<RightContainer>
+				{ (page.loggedIn && !page.isSuper) && 
+					<SwitchCalendarButtons>
+						<LeftButton
+							shaded
+							label="전체"
+							variant="border-filled"
+							onClick={switchCalendar}
+							disabled={!calendar.clubCalendar || page.setCalendarMode}
+						/>
+						<RightButton
+							shaded
+							label="동아리"
+							variant="border-filled"
+							onClick={switchCalendar}
+							disabled={calendar.clubCalendar || page.setCalendarMode}
+						/>
+					</SwitchCalendarButtons>
+				}
+				{ page.loggedIn ?
+					<AuthButton
+						shaded
+						label="로그아웃"
+						variant="border-filled"
+						onClick={handleLogout}
+					/>
+				:
+					<AuthButton
+						shaded
+						label="로그인"
+						variant="border-filled"
+						onClick={openLoginModal}
+					/>
+				}
+			</RightContainer>
+		</MainContainer>
+	);
+});
+
+/** Container Styles */
+const MainContainer = styled.div`
 	padding: 1.5rem 1rem;
 	display: flex;
     justify-content: space-between;
@@ -105,88 +92,60 @@ const style = css `
 	}
 	border-bottom: 1px solid #ddd;
 `;
-const container = css `
-	margin: auto 0;
+const SubContainer = styled.div`
 	position: relative;
-	width: 25rem;
 	height: 100%;
+`;
+const LeftContainer = styled(SubContainer)`
+	flex: none;
 	h1 {
 		display: inline;
 		transform: translateY(-50%);
 	}
-	.buttons {
-		display: inline;
-		vertical-align: top;
-		margin-right: 1rem;
-		transform: translateY(-50%);
-	}
 `;
-const containerRight = css `
-	margin: auto 0;
-	position: relative;
-	float: right;
-	height: 100%;
-`;
-const buttonLeftStyle = css `
-	border: 1px solid #ddd;
-	border-top-left-radius: 10px;
-	border-bottom-left-radius: 10px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
-	margin-right: -1px;
-	height: 38px;
-	&:hover:enabled {
-		background-color: #fafafa;
-		color: #3C4043;
-	}
-	
-`;
-const buttonRightStyle = css `
-	border: 1px solid #ddd;
-	border-top-right-radius: 10px;
-	border-bottom-right-radius: 10px;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-	margin-left: -1px;
-	height: 38px;
-	&:hover:enabled {
-		background-color: #fafafa;
-		color: #3C4043;
-	}
-`;
-const buttonStyle = css `
-	color: #3C4043;
-	margin: 0;
-	background-color: #fff;
-	border: 1px solid #ddd;
-	border-radius: 0;
-	height: 38px;
-	box-shadow: 0 0 0 0;
-	&:hover:enabled {
-		background-color: #fafafa;
-		color: #3C4043;
-	}
+const RightContainer = styled(SubContainer)`
+	margin-left: auto;
 `;
 
-const changeCalendarButtons = css `
+/** Button Styles */
+const Buttons = styled.div`
+	display: inline;
+	vertical-align: top;
+	margin-right: 1rem;
+	transform: translateY(-50%);
+`;
+const SwitchCalendarButtons = styled.div`
 	margin: auto 0;
 	margin-right: 1rem;
 	display: inline-block;
 `;
-const singleButtonStyle = css `
-	margin: auto 0;
-	display: inline-block;
-	float: right;
+const StyledButton = styled(Button)`
 	color: #3C4043;
 	background-color: #fff;
 	border: 1px solid #ddd;
-	border-radius: 10px;
 	height: 38px;
 	box-shadow: 0 0 0 0;
+	border-radius: 0;
 	&:hover:enabled {
 		background-color: #fafafa;
 		color: #3C4043;
 	}
+`;
+const RightButton = styled(StyledButton)`
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	margin-left: -1px;
+`;
+const RightButtonIcon = RightButton.withComponent(ButtonIcon);
+const LeftButton = styled(StyledButton)`
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 10px;
+	margin-right: -1px;
+`;
+const LeftButtonIcon = LeftButton.withComponent(ButtonIcon);
+const AuthButton = styled(StyledButton)`
+	border-radius: 10px;
+	float: right;
 `;
 
 export default Header;

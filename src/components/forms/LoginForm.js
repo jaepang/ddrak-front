@@ -1,52 +1,45 @@
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
-import { Component } from 'react';
-import { observer, inject } from 'mobx-react';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { useStore } from '../../stores';
 import { Input, Button } from 'react-rainbow-components';
+import styled from '@emotion/styled';
 
-@inject('page')
-@observer
-class LoginForm extends Component {
+const LoginForm = observer(() => {
+	const { page } = useStore();
+	const handleLogin = e => page.handleLogin(e);
+	const handleFormChange = e => page.handleFormChange(e);
+    return (
+		<form onSubmit={e => handleLogin(e)}>
+			<h2>로그인</h2>
+			<StyledInput
+				type="text"
+				name="username"
+				label="계정명"
+				labelAlignment="left"
+				placeholder="username"
+				value={page.auth.username}
+				onChange={handleFormChange}
+			/>
+			<br/>
+			<StyledInput
+				type="password"
+				name="password"
+				label="비밀번호"
+				labelAlignment="left"
+				placeholder="password"
+				value={page.auth.password}
+				onChange={handleFormChange}
+			/>
+			<StyledButton
+				label="login"
+				type="submit"
+				variant="brand"
+			/>
+		</form>
+	);
+});
 
-	page = this.props.page;
-
-	render() {
-    	return (
-      		<form onSubmit={e => this.page.handleLogin(e)}>
-				<h2>로그인</h2>
-		        <Input
-	        		type="text"
-		          	name="username"
-					label="계정명"
-					labelAlignment="left"
-					placeholder="username"
-        		  	value={this.page.auth.username}
-		          	onChange={this.page.handleFormChange}
-					css={inputStyle}
-        		/>
-				<br/>
-        		<Input
-		          	type="password"
-        		  	name="password"
-					label="비밀번호"
-					labelAlignment="left"
-					placeholder="password"
-		          	value={this.page.auth.password}
-        		 	onChange={this.page.handleFormChange}
-					css={inputStyle}
-		        />
-        		<Button
-					label="login"
-					type="submit"
-					variant="brand"
-					css={buttonStyle}
-				/>
-	      </form>
-    	);
-  	}
-}
-
-const inputStyle = css `
+const StyledInput = styled(Input)`
 	input {
 		border-radius: 15px;
 	}
@@ -54,7 +47,7 @@ const inputStyle = css `
 		margin-left: 5px;
 	}
 `;
-const buttonStyle = css `
+const StyledButton = styled(Button)`
 	margin-top: 1.2rem;
 	border-radius: 15px;
 `;

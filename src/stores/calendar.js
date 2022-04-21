@@ -1,6 +1,7 @@
-import { makeObservable, observable, action, flow } from 'mobx';
+import { createRef } from 'react';
+import { makeAutoObservable, runInAction } from 'mobx';
 import axios from 'axios';
-import { getFirstDay, inDay, nightTime, isBorrowed, isInBoundary } from '../utils/dateCalculator';
+import { calcHeaderDate, getFirstDay, inDay, nightTime, isBorrowed, isInBoundary } from '../utils/dateCalculator';
 import moment from 'moment';
 import 'moment/locale/ko';
 
@@ -22,75 +23,77 @@ const getAllIndex = (list, value) => {
 
 export default class CalendarStore {
 	/* for display */
-	@observable data = [];
-	@observable clubData = {
+	data = [];
+	clubData = {
 		'악의꽃': [],
 		'막무간애': [],
 		'모여락': []
 	};
-	@observable adminData = [];
-	@observable borrowPaddingBuffer = new Set();
-	@observable borrowPaddingOriginalBuffer = new Set();
-	@observable borrowedData = [];
+	adminData = [];
+	borrowPaddingBuffer = new Set();
+	borrowPaddingOriginalBuffer = new Set();
+	borrowedData = [];
 	/* for submit */
-	@observable updatedData = [];
-	@observable addedData = [];
-	@observable deletedData = [];
+	updatedData = [];
+	addedData = [];
+	deletedData = [];
 
-	@observable calendarApi = null;
-	@observable currentDate = new Date();
-	@observable curDateObj = {
-		year: this.currentDate.getFullYear(),
-		month: this.currentDate.getMonth()+1,
-		date: this.currentDate.getDate(),
-	};
-	@observable disableSubmitButton = true;
-	@observable setTimeSlot = [];
-	@observable setTimeIdx = 0;
-	@observable clubCalendar = false;
+	calendarApi = 0;
+	currentDate = new Date();
+	disableSubmitButton = true;
+	setTimeSlot = [];
+	setTimeIdx = 0;
+	clubCalendar = false;
+	headerDate = calcHeaderDate(new Date());
+	ref = createRef();
+	firstLoad = true;
 
 	constructor(root) { 
-		makeObservable(this);
-		this.root = root; 
+		this.root = root;
+		makeAutoObservable(this);
 	}
+	setFirstLoad = () => this.firstLoad = false;
 
-	getData = flow(function*(flag) {
+	getData = async (flag) => {
 		const cur = this.currentDate;
 		const from = new Date(cur.getFullYear(), cur.getMonth()-1, 1).toISOString();
 		const to = new Date(cur.getFullYear(), cur.getMonth()+2, 0).toISOString();
-    	const res = yield axios.get(`api/?start__gte=${from}&start__lt=${to}`);
-		const allClubData = res.data.filter(d => d.creator !== 'admin');
-		this.adminData = res.data.filter(d => d.creator === 'admin');
-		for(let club in this.clubData)
-			this.clubData[club] = allClubData.filter(d => d.club === club);
-		this.borrowedData = res.data.filter(d => isBorrowed(d.creator, d.club));
-		
-		if(this.root.page.userclub !== 'none' && this.clubCalendar) {
-			this.data = res.data.filter(d => d.club !== this.root.page.userclub)
-				.concat(this.clubData[this.root.page.userclub]);
-			this.data.forEach(e => {
-				/* admin or borrowed data */
-				if(e.creator !== this.root.page.username) {
-					e.color = '#777';
-					e.editable = false;
-				}
-			});
-		}
-		else {
-			/* admin data or borrowed data */
-			this.data = res.data.filter(e => e.creator === 'admin' || isBorrowed(e.creator, e.club));
-			if(!this.root.page.isSuper)
-				this.data.map(e => e.editable = false);
-		}
-		if(flag) {
-			alert('data updated!');
-		}
-	})
 
-	@action
+    	const res = await axios.get(`api/?start__gte=${from}&start__lt=${to}`);
+		const allClubData = res.data.filter(d => d.creator !== 'admin');
+		runInAction(() => {
+			this.adminData = res.data.filter(d => d.creator === 'admin');
+
+			for(let club in this.clubData)
+				this.clubData[club] = allClubData.filter(d => d.club === club);
+
+			this.borrowedData = res.data.filter(d => isBorrowed(d.creator, d.club));
+			
+			if(this.root.page.userclub !== 'none' && this.clubCalendar) {
+				this.data = res.data.filter(d => d.club !== this.root.page.userclub)
+					.concat(this.clubData[this.root.page.userclub]);
+				this.data.forEach(e => {
+					/* admin or borrowed data */
+					if(e.creator !== this.root.page.username) {
+						e.color = '#777';
+						e.editable = false;
+					}
+				});
+			}
+			else {
+				/* admin data or borrowed data */
+				this.data = res.data.filter(e => e.creator === 'admin' || isBorrowed(e.creator, e.club));
+				if(!this.root.page.isSuper)
+					this.data.map(e => e.editable = false);
+			}
+			if(flag) {
+				alert('data updated!');
+			}
+		});
+	}
+
 	getCalendarApi = ref => this.calendarApi = ref;
 
-	@action
 	emptyBuffer = () => {
 		if(this.clubCalendar)
 			this.borrowPaddingBuffer.forEach(e => this.calendarApi.addEvent(e));
@@ -101,7 +104,6 @@ export default class CalendarStore {
 		this.borrowPaddingBuffer.clear();
 	}
 
-	@action
 	handleBorrowedEvents = () => {
 		if(this.root.page.userclub === 'none' || !this.clubCalendar)
 			return;
@@ -178,18 +180,14 @@ export default class CalendarStore {
 			}
 		})
 	}
-
-	@action
+	
 	setCurDate = () => {
-		this.curDateObj.year = this.currentDate.getFullYear();
-		this.curDateObj.month = this.currentDate.getMonth()+1;
-		this.curDateObj.date = this.currentDate.getDate();
 		this.borrowPaddingBuffer.forEach(e => e.remove());
 		this.borrowPaddingOriginalBuffer.forEach(e => e.remove());
 		this.handleBorrowedEvents();
+		this.headerDate = calcHeaderDate(this.currentDate);
 	}
 
-	@action
 	currentDateChange = date => {
 		const y = this.currentDate.getFullYear();
 		const m = this.currentDate.getMonth();
@@ -200,20 +198,18 @@ export default class CalendarStore {
 	}
 	
 	moveToday = () => this.currentDateChange(new Date());
-
-	@action
+	
 	moveRight = () => {
-		const y = this.currentDate.getFullYear();
-		const m = this.currentDate.getMonth();
 		const d = this.currentDate.getDate();
 		this.currentDate.setDate(d+7);
+		const y = this.currentDate.getFullYear();
+		const m = this.currentDate.getMonth();
 		this.calendarApi.next();
 		if(!this.root.page.setCalendarMode)
 			this.updateMonthData(y, m, this.currentDate);
 		this.setCurDate();
 	}
 
-	@action
 	moveLeft = () => {
 		const y = this.currentDate.getFullYear();
 		const m = this.currentDate.getMonth();
@@ -224,15 +220,13 @@ export default class CalendarStore {
 			this.updateMonthData(y, m, this.currentDate);
 		this.setCurDate();
 	}
-
-	@action
+	
 	updateMonthData = (y, m, date) => {
 		if(m !== date.getMonth() || y !== date.getFullYear()) {
 			this.getData();
 		}
 	}
 
-	@action
 	updateData = (tar, newEvent, oldEvent, data) => {
 		const { title, allDay, start, end } = newEvent;
 		tar.title = title;
@@ -264,7 +258,6 @@ export default class CalendarStore {
 		}
 	}
 
-	@action
 	eventChange = changeInfo => {
 		const newEvent = changeInfo.event;
 		const oldEvent = changeInfo.oldEvent;
@@ -307,7 +300,6 @@ export default class CalendarStore {
 		this.disableSubmitButton = false;
 	}
 
-	@action
 	eventClick = event => {
 		const isAdmin = this.root.page.isAdmin;
 		if(!isAdmin || event.extendedProps.creator !== this.root.page.username) {
@@ -338,7 +330,6 @@ export default class CalendarStore {
 		}
 	}
 
-	@action
 	eventReceive = event => {
 		const color = {
 			'악의꽃': '#79A3F4',
@@ -386,7 +377,6 @@ export default class CalendarStore {
 		this.disableSubmitButton = false;
 	}
 
-	@action
 	submitData = () => {
 		const isSuper = this.root.page.isSuper;
 		if(this.deletedData.length > 0)
@@ -429,6 +419,9 @@ export default class CalendarStore {
 		this.updatedData = [];
 		this.addedData = [];
 		this.deletedData = [];
+		/** async is better way to prevent remained old data
+		 * 	but when delete/update data is large, it can be slow
+		 */
 		setTimeout(() => this.getData(true), 1000);
 	}
 
@@ -453,7 +446,6 @@ export default class CalendarStore {
 		axios.post(`api/`, event);
 	}
 
-	@action
 	enableSetCalendarMode = () => {
 		this.setTimeSlot.push({
 				isFirst: true,
@@ -498,7 +490,6 @@ export default class CalendarStore {
 		}
 	}
 
-	@action
 	disableSetCalendarMode = () => {
 		this.currentDateChange(new Date());
 		this.calendarApi.getEvents().map(e => e.remove());
@@ -508,7 +499,6 @@ export default class CalendarStore {
 		this.getData();
 	}
 
-	@action
 	displayTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
 		const { startTime, endTime, title, days } = cur;
@@ -578,7 +568,6 @@ export default class CalendarStore {
 		this.disableSubmitButton = this.calendarApi.getEvents().length === 0;
 	}
 
-	@action
 	nextTimeSlot = () => {
 		const cur = this.setTimeSlot[this.setTimeIdx];
 		if(cur.isLast) {
@@ -606,10 +595,8 @@ export default class CalendarStore {
 		this.setTimeIdx++;
 	}
 
-	@action
 	prevTimeSlot = () => this.setTimeIdx--;
 
-	@action
 	changeStartTimeSlot = time => {
 		console.log(time, typeof(time));
 		const hour = typeof(time) === 'string' ? Number(time.slice(0, 2)):time.getHours();
@@ -633,7 +620,6 @@ export default class CalendarStore {
 		return;	
 	}
 
-	@action
 	changeEndTimeSlot = time => { 
 		const hour = typeof(time) === 'string' ? Number(time.slice(0, 2)):time.getHours();
 		const min = typeof(time) === 'string' ? Number(time.slice(3)):time.getMinutes();
@@ -657,19 +643,16 @@ export default class CalendarStore {
 		return;
 	}
 
-	@action
 	changeDays = (day, club) =>  {
 		this.setTimeSlot[this.setTimeIdx].days[day] = club;
 		this.displayTimeSlot();
 	}
 
-	@action
 	changeTitle = event =>  {
 		this.setTimeSlot[this.setTimeIdx].title = event.target.value;
 		this.displayTimeSlot();
 	}
 
-	@action
 	switchCalendar = () => {
 		this.clubCalendar = !this.clubCalendar;
 		this.addedData = [];

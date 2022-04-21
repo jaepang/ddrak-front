@@ -1,28 +1,36 @@
-export const calcMonth = (cur) => {
-	const { year, month, date } = cur;
+import moment from 'moment';
+import 'moment/locale/ko';
+moment.locale('ko');
+
+export const calcHeaderDate = cur => {
+	const year = cur.getFullYear();
+	const month = cur.getMonth()+1;
+	const date = cur.getDate();
 	let day = new Date(year, month-1, date).getDay();
-	let obj = { bfDate: null, aftDate: null, yearChange: null, title: null };
 	if(day === 0)
 		day = 7;
-	const prevTest = new Date(year, month-1, date-day+1);
-	const nextTest = new Date(year, month-1, date-day+7);
-	if(prevTest.getMonth() < month-1 || prevTest.getFullYear() < year) {
-		obj.bfDate = prevTest;
-		obj.aftDate = new Date(cur.year, cur.month-1, cur.date);
-		obj.yearChange = obj.bfDate.getFullYear() !== obj.aftDate.getFullYear();
-		obj.title = `${obj.bfDate.getMonth()+1}-${cur.month}`;
+	let header;
+	let bfDate = new Date(year, month-1, date-day+1);
+	let aftDate = new Date(year, month-1, date-day+7);
+
+	if(bfDate.getMonth() < month-1 || bfDate.getFullYear() < year) {
+		aftDate = new Date(cur.year, cur.month-1, cur.date);
+		if(bfDate.getFullYear() !== cur.getFullYear())
+			header = moment(bfDate).format('Y[년] M[월]-') + moment(cur).format('Y[년] M[월]');
+		else
+			header = moment(bfDate).format('Y[년] M[월]-') + moment(cur).format('M[월]'); 
 	}
-	else if(nextTest.getMonth() > month-1 || year < nextTest.getFullYear()) {
-		obj.bfDate = new Date(cur.year, cur.month-1, cur.date);
-		obj.aftDate = nextTest;
-		obj.yearChange = obj.bfDate.getFullYear() !== obj.aftDate.getFullYear();
-		obj.title = `${cur.month}-${obj.aftDate.getMonth()+1}`;
+	else if(aftDate.getMonth() > month-1 || year < aftDate.getFullYear()) {
+		bfDate = new Date(cur.year, cur.month-1, cur.date);
+		if(cur.getFullYear() !== aftDate.getFullYear()) 
+			header = moment(cur).format('Y[년] M[월]-') + moment(aftDate).format('Y[년] M[월]');
+		else
+			header = moment(cur).format('Y[년] M[월]-') + moment(aftDate).format('M[월]')
 	}
-	else {
-		obj.yearChange = false;
-		obj.title = `${cur.month}`;
-	}
-	return obj;
+	else
+		header = moment(cur).format('Y[년] M[월]');
+	
+	return header;
 }
 
 export const getFirstMon = (date) => {

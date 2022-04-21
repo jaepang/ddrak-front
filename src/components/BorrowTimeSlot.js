@@ -1,89 +1,80 @@
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
-import React, { Component } from 'react';
-import { observer, inject } from 'mobx-react';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { useStore } from '../stores';
 import { Input, ButtonIcon, Button, DateTimePicker } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import styled from '@emotion/styled';
 
-@inject ('calendar')
-@observer
-class BorrowTimeSlot extends Component {
-	calendar = this.props.calendar;
-	page = this.calendar.root.page;
-	
-	render() {
-		const idx = this.calendar.setTimeIdx;
-		const resources = this.calendar.setTimeSlot;
-		const cur = resources[idx];
-		
-		return(
-			<React.Fragment>
-				<div css={container}>
-					<h3>기타 대여 등록</h3>
-					<div>
-						<ButtonIcon
-							size="medium" 
-							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronLeft} />} 
-							disabled={cur.isFirst}
-							onClick={this.calendar.prevTimeSlot}
-						/>
-						<ButtonIcon
-							size="medium" 
-							icon={<FontAwesomeIcon css={iconStyle} icon={faChevronRight} />} 
-							onClick={this.calendar.nextTimeSlot}
-						/>
-					</div>
+const BorrowTimeSlot = observer(() => {
+	const { calendar, page } = useStore();
+	const prevTimeSlot = () => calendar.prevTimeSlot();
+	const nextTimeSlot = () => calendar.nextTimeSlot();
+	const changeStartTimeSlot = time => calendar.changeStartTimeSlot(time);
+	const changeEndTimeSlot = time => calendar.changeEndTimeSlot(time);
+	const changeTitle = title => calendar.changeTitle(title);
+	const submitData = () => calendar.submitData();
+	const disableSetCalendarMode = () => page.disableSetCalendarMode();
+
+	return (
+		<React.Fragment>
+			<Container>
+				<h3>기타 대여 등록</h3>
+				<div>
+					<ButtonIcon
+						size="medium" 
+						icon={<StyledIcon icon={faChevronLeft} />} 
+						disabled={calendar.setTimeSlot[calendar.setTimeIdx].isFirst}
+						onClick={prevTimeSlot}
+					/>
+					<ButtonIcon
+						size="medium" 
+						icon={<StyledIcon icon={faChevronRight} />} 
+						onClick={nextTimeSlot}
+					/>
 				</div>
-				
-				
-					<div>
-						<div css={container}>
-							<DateTimePicker label="시작 시간"
-								css={timePicker}
-								value={cur.startTime}
-								onChange={t => this.calendar.changeStartTimeSlot(t)}
-							/>
-							<DateTimePicker
-								label="끝 시간"
-								css={timePicker}
-								value={cur.endTime}
-								onChange={t => this.calendar.changeEndTimeSlot(t)}
-							/>
-						</div>
-						<div css={container}>
-							<Input
-								label="대여 대상"
-								placeholder="대여 대상 입력"
-								type="text"
-								css={css `width: 100%;`}
-								value={cur.title}
-								className="rainbow-p-around_medium"
-								onChange={title => this.calendar.changeTitle(title)}
-							/>
-						</div>
-						<div css={container}>
-							<Button
-								label="적용"
-								variant="brand"
-								css={buttonStyle}
-								disabled={this.calendar.disableSubmitButton}
-								onClick={this.calendar.submitData}
-							/>
-							<Button
-								label="취소"
-								variant="destructive"
-								css={buttonStyle}
-								onClick={this.page.disableSetCalendarMode}
-							/>
-						</div>
-					</div>
-			</React.Fragment>
-		);
-	}
-};
+			</Container>
+			<div>
+				<Container>
+					<TimePicker label="시작 시간"
+						value={calendar.setTimeSlot[calendar.setTimeIdx].startTime}
+						onChange={t => changeStartTimeSlot(t)}
+					/>
+					<TimePicker
+						label="끝 시간"
+						value={calendar.setTimeSlot[calendar.setTimeIdx].endTime}
+						onChange={t => changeEndTimeSlot(t)}
+					/>
+				</Container>
+				<Container>
+					<StyledInput
+						label="대여 대상"
+						placeholder="대여 대상 입력"
+						type="text"
+						value={calendar.setTimeSlot[calendar.setTimeIdx].title}
+						className="rainbow-p-around_medium"
+						onChange={title => changeTitle(title)}
+					/>
+				</Container>
+				<Container>
+					<StyledButton
+						label="적용"
+						variant="brand"
+						disabled={calendar.disableSubmitButton}
+						onClick={submitData}
+					/>
+					<StyledButton
+						label="취소"
+						variant="destructive"
+						onClick={disableSetCalendarMode}
+					/>
+				</Container>
+			</div>
+		</React.Fragment>
+	);
+});
 
-const container = css `
+const Container = styled.div`
 	display: flex;
 	justify-content: space-between;
 	button {
@@ -96,7 +87,7 @@ const container = css `
 		}
 	}
 `;
-const timePicker = css `
+const TimePicker = styled(DateTimePicker)`
 	display: inline-block;
 	border-radius: 15px;
 	width: 44%;
@@ -105,15 +96,18 @@ const timePicker = css `
 		height: 35px;
 	}
 `;
-const buttonStyle = css `
+const StyledButton = styled(Button)`
 	display: inline-block;
 	border-radius: 15px;
 	width: 48% !important;
 	height: 40px !important;
 	margin-top: 10px;
 `;
-const iconStyle = css `
+const StyledIcon = styled(FontAwesomeIcon)`
 	color: #3C4043;
 `;
+const StyledInput = styled(Input)`
+	width: 100%;
+`
 
 export default BorrowTimeSlot;

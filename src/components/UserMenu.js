@@ -1,105 +1,94 @@
-import { Component } from 'react';
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
-import { observer, inject } from 'mobx-react';
+import React, { useEffect } from 'react';
+import { observer } from 'mobx-react';
+import { autorun } from 'mobx';
+import { useStore } from '../stores';
 import UserMenuButton from './UserMenuButton';
 import { Modal, Button } from 'react-rainbow-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import clubType from '../utils/userMenuButtonContent';
+import styled from '@emotion/styled';
 
-@inject('page')
-@observer
-class UserMenu extends Component {
-	page = this.props.page;
-	
-	componentDidMount() {
-		if(this.page.loggedIn) {
-			this.page.getCurUser();
+const UserMenu = observer(() => {
+	const { calendar, page } = useStore();
+	const submitData = () => calendar.submitData();
+	const disableSetCalendarMode = () => page.disableSetCalendarMode();
+
+	useEffect(() => autorun(() => {
+		if(page.loggedIn) {
+			page.getCurUser();
 		}
-	}
+	}));
 
-	componentDidUpdate() {
-		if(this.page.loggedIn) {
-			this.page.getCurUser();
-		}
-	}
-
-    render() {
-        return (
-            <div>
-				{ this.page.loggedIn && <h3>{this.page.usernameDisplay}</h3> }
-				{ !this.page.loggedIn && <h3>어서오세요!</h3> }
-				<Modal 
-					id="modal" 
-					isOpen={this.page.openModal} 
-					onRequestClose={this.page.handleCloseModal}
-					css={modalStyle}
-				>
-					{<this.page.modalContent/>} 
-				</Modal>
-				<div css={style}>
-					{clubType[this.page.usertype].map( b => (
-							<UserMenuButton
-								key={b.label}
-								icon={<FontAwesomeIcon icon={b.icon} size="3x"/>}
-								label={b.label}
-								onClick={this.page[b.handler]}
-							/>
-						))
-					}
-				</div>
-				{ (this.page.isAdmin && !this.page.setCalendarMode) &&
-					<Button
-						label="변경사항 적용"
+    return (
+		<div>
+			{ page.loggedIn && <h3>{page.usernameDisplay}</h3> }
+			{ !page.loggedIn && <h3>어서오세요!</h3> }
+			<StyledModal 
+				id="modal" 
+				isOpen={page.openModal} 
+				onRequestClose={page.handleCloseModal}
+			>
+				{<page.modalContent/>} 
+			</StyledModal>
+			<Container>
+				{clubType[page.usertype].map( b => (
+						<UserMenuButton
+							key={b.label}
+							icon={<FontAwesomeIcon icon={b.icon} size="3x"/>}
+							label={b.label}
+							onClick={page[b.handler]}
+						/>
+					))
+				}
+			</Container>
+			{ (page.isAdmin && !page.setCalendarMode) &&
+				<SubmitButton
+					label="변경사항 적용"
+					variant="brand"
+					disabled={calendar.disableSubmitButton}
+					onClick={submitData}
+				/>
+			}
+			{ (page.isAdmin && page.setCalendarMode) &&
+				<SetCalendarContainer>
+					<StyledButton
+						label="적용"
 						variant="brand"
-						css={submitButtonStyle}
-						disabled={this.page.root.calendar.disableSubmitButton}
-						onClick={this.page.root.calendar.submitData}
+						disabled={calendar.disableSubmitButton}
+						onClick={submitData}
 					/>
-				}
-				{ (this.page.isAdmin && this.page.setCalendarMode) &&
-					<div css={setTimeMode}>
-						<Button
-							label="적용"
-							variant="brand"
-							css={buttonStyle}
-							disabled={this.page.root.calendar.disableSubmitButton}
-							onClick={this.page.root.calendar.submitData}
-						/>
-						<Button
-							label="취소"
-							variant="destructive"
-							css={buttonStyle}
-							onClick={this.page.disableSetCalendarMode}
-						/>
-					</div>
-				}
-			</div>
-        );
-    }
-}
+					<StyledButton
+						label="취소"
+						variant="destructive"
+						onClick={disableSetCalendarMode}
+					/>
+				</SetCalendarContainer>
+			}
+		</div>
+	 );
+});
 
-const style = css `
+const Container = styled.div`
 	margin: 7% auto 12% auto;
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(30%, auto));
 	column-gap: 3%;
 	row-gap: 20%;
 `;
-const modalStyle = css `
+const StyledModal = styled(Modal)`
 	padding: 1.5rem;
 `;
-const submitButtonStyle = css `
+const SubmitButton = styled(Button)`
 	display: block;
 	border-radius: 15px;
 	width: 100%;
 	margin-top: 10px;
 `;
-const setTimeMode = css `
+const SetCalendarContainer = styled.div`
 	display: flex;
 	justify-content: space-between;
 `;
-const buttonStyle = css `
+const StyledButton = styled(Button)`
 	display: inline-block;
 	border-radius: 15px;
 	width: 48%;

@@ -1,16 +1,16 @@
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
+import React from 'react';
+import styled from '@emotion/styled';
 
 const UserMenuButton = ({icon, label, onClick}) => {
 	return (
-		<button css={style} onClick={onClick}>
+		<Button onClick={onClick}>
 			{icon}
 			{label}
-		</button>
+		</Button>
 	)
 }
 
-const style = css `
+const Button = styled.button`
 	cursor: pointer;
 	border: none;
 	background: transparent;

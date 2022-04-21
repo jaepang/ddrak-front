@@ -1,60 +1,61 @@
-/** @jsx jsx */
-import { jsx, css } from '@emotion/core';
-import { Component } from 'react';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { useStore } from '../stores';
 import { Card, Calendar } from 'react-rainbow-components';
-import { observer, inject } from 'mobx-react';
 import UserMenu from './UserMenu';
 import ExternalEvents from './ExternalEvents';
 import SetTimeSlot from './SetTimeSlot';
 import BorrowTimeSlot from './BorrowTimeSlot';
+import { useMediaQuery } from 'react-responsive';
+import styled from '@emotion/styled';
 
-@inject('calendar')
-@observer
-class Sidebar extends Component {
-	curYear = new Date().getFullYear();
-	minDate = new Date(this.curYear-5, 0, 1);
-	maxDate = new Date(this.curYear+5, 11, 31);
+const Sidebar = observer(() => {
+	const { calendar, page } = useStore();
+	const currentDateChange = date => calendar.currentDateChange(date);
+	const isMobile = useMediaQuery({ maxWidth: 767 });
+	const curYear = new Date().getFullYear();
+	const minDate = new Date(curYear-5, 0, 1);
+	const maxDate = new Date(curYear+5, 11, 31);
+	
+	return (
+		<Container isMobile={isMobile}>
+			<StyledCard>
+				{ !page.setCalendarMode && 
+					<Calendar 
+						value={String(calendar.currentDate)}
+						onChange={currentDateChange}
+						minDate={minDate}
+						maxDate={maxDate}
+					/>
+				}
+				{ page.setCalendarMode &&
+					<ExternalEvents />
+				}
+			</StyledCard>
+			<StyledCard>
+				{ page.setCalendarMode ?
+					(page.borrowTimeMode ?
+						<BorrowTimeSlot />:<SetTimeSlot />
+					):
+					<UserMenu />
+				}
+			</StyledCard>
+		</Container>
+	);
+});
 
-	render() {
-		const { calendar } = this.props;
-		const date = calendar.curDateObj;
-		let userMenuContent;
-		if(!calendar.root.page.setCalendarMode)
-			userMenuContent = <UserMenu />;
-		else
-			userMenuContent = calendar.root.page.borrowTimeMode ? <BorrowTimeSlot />:<SetTimeSlot />;
-		return (
-			<div css={style}>
-				<Card css={cardStyle}>
-					{ !calendar.root.page.setCalendarMode && 
-						<Calendar 
-							value={new Date(date.year, date.month-1, date.date)}
-							onChange={calendar.currentDateChange}
-							minDate={this.minDate}
-							maxDate={this.maxDate}
-						/>
-					}
-					{ calendar.root.page.setCalendarMode &&
-						<ExternalEvents />
-					}
-				</Card>
-				<Card css={cardStyle}>
-					{ userMenuContent }
-				</Card>
-			</div>
-		);
-	}
-}
-
-const style = css `
-	display: block;
-	height: 100vh;
+const Container = styled.div`
 	margin: 0;
 	padding: 1rem;
 	border-left: 1px solid #ddd;
 	background-color: #FCFCFC;
+	width: 25%;
+	height: auto;
+	/*position: fixed;
+	right: ${props => props.isMobile ? `` : `1rem`}*/
+	display: ${props => props.isMobile ? `hidden` : `block`};
 `
-const cardStyle = css `
+const StyledCard = styled(Card)`
 	width: 100%;
 	margin: 0;
 	margin-bottom: 0.5rem;

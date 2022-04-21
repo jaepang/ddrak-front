@@ -1,3 +1,4 @@
+import { createContext, useContext } from 'react';
 import CalendarStore from './calendar';
 import PageStore from './page';
 
@@ -8,4 +9,6 @@ class RootStore {
   	}
 }
 
-export default RootStore;
+const StoreContext = createContext(new RootStore());
+
+export const useStore = () => useContext(StoreContext);
